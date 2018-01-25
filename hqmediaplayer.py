@@ -1,4 +1,3 @@
-import sys
 import ctypes
 
 import files
@@ -14,10 +13,7 @@ from PyQt5 import uic
 
 # TODO:
 # Maybe create QPushButtons, QLabel, etc. in .py instead .ui
-#
-# Hide the console if possible
 # Move the console
-# Create a menu tool bar
 # Make a better looking UI
 # Create a Playlist class
 # QtxGlobalShortcuts, look into that
@@ -28,10 +24,10 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("dagostinateur_woh
 
 
 def format_duration(duration: float):
-    """
+    """Formats the duration (milliseconds) to a human readable way.
 
     :param duration: Duration in milliseconds
-    :return: Duration in HOURS:MINUTES:SECONDS format
+    :return: Duration in HOURS:MINUTES:SECONDS format. Example: 01:05:10
     """
     m, s = divmod(duration / 1000, 60)
     h, m = divmod(m, 60)
@@ -43,6 +39,12 @@ def format_duration(duration: float):
 
 
 def check_keys(key_list: list, wanted_key_list: list):
+    """Checks if the key list has every wanted key pressed (not in order).
+
+    :param key_list: List of keys pressed.
+    :param wanted_key_list: List of keys that needs to be pressed.
+    :return: Returns whether the list of keys matches the wanted list.
+    """
     key_count = 0
     print(key_list)
     print(wanted_key_list)
@@ -56,7 +58,7 @@ def check_keys(key_list: list, wanted_key_list: list):
 
 
 # noinspection PyCallByClass,PyArgumentList,PyUnresolvedReferences
-class HQMediaPlayer(QWidget):
+class HQMediaPlayer(QMainWindow):
     muted = False
     repeating = False
     value_when_muted = 25
@@ -66,16 +68,15 @@ class HQMediaPlayer(QWidget):
 
     def __init__(self, parent=None):
         super(HQMediaPlayer, self).__init__(parent)
-        uic.loadUi(files.MAIN_UI, self)
+        uic.loadUi(files.MAIN_WINDOW_UI, self)
         self.setFocus()
         self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
 
-        self.song = WSong(files.MUSIC_MIBILIS)
+        self.song = WSong(files.MUSIC_LETS_PRACTICE)
         self.player = QMediaPlayer()
+        self.dbg_console = embedded_console.EmbeddedConsole(self)
 
         self.create_connections()
-
-        self.dbg_console = embedded_console.EmbeddedConsole(self)
 
         self.player.setMedia(self.song.content)
         self.player.setVolume(self.value_when_muted)
@@ -115,8 +116,8 @@ class HQMediaPlayer(QWidget):
         elif status == QMediaPlayer.EndOfMedia:
             self.reset_duration_slider()
             self.duration_slider.setDisabled(True)
-            self.set_to_stopped()
-            self.set_to_play()
+            self.set_button_displayed_info([self.stop_button, "Stopped", files.Images.STOPPED],
+                                           [self.play_button, "Play", files.Images.PLAY])
 
     def volume_slider_value_changed(self):
         self.player.setVolume(self.volume_slider.value())
@@ -146,42 +147,43 @@ class HQMediaPlayer(QWidget):
         elif self.player.state() == QMediaPlayer.PausedState:
             self.player.play()
 
-        self.set_to_stop()
-        self.set_to_playing()
-        self.set_to_pause()
+        self.set_button_displayed_info([self.stop_button, "Stop", files.Images.STOP],
+                                       [self.play_button, "Playing", files.Images.PLAYING],
+                                       [self.pause_button, "Pause", files.Images.PAUSE])
 
     def pause_button_clicked(self):
         if not self.player.state() == QMediaPlayer.StoppedState:
             self.player.pause()
-            self.set_to_paused()
-            self.set_to_play()
+            self.set_button_displayed_info([self.pause_button, "Paused", files.Images.PAUSED],
+                                           [self.play_button, "Play", files.Images.PLAY])
 
     def mute_button_clicked(self):
         if self.muted:
-            self.set_to_unmuted()
+            self.set_button_displayed_info([self.mute_button, "Muted",
+                                            self.check_volume_value(self.value_when_muted)])
             self.volume_slider.setValue(self.value_when_muted)
             self.muted = False
         else:
             self.value_when_muted = self.volume_slider.value()
             self.volume_slider.setValue(0)
-            self.set_to_mute()
+            self.set_button_displayed_info([self.mute_button, "Mute", files.Images.MUTED])
             self.muted = True
 
     def repeat_button_clicked(self):
         if self.repeating:
-            self.set_to_repeat()
+            self.set_button_displayed_info([self.repeat_button, "Repeat", files.Images.REPEAT])
             self.repeating = False
         else:
-            self.set_to_repeating()
+            self.set_button_displayed_info([self.repeat_button, "Repeating", files.Images.REPEATING])
             self.repeating = True
 
     def stop_button_clicked(self):
         self.player.stop()
         self.reset_duration_slider()
         self.duration_slider.setDisabled(True)
-        self.set_to_stopped()
-        self.set_to_pause()
-        self.set_to_play()
+        self.set_button_displayed_info([self.stop_button, "Stopped", files.Images.STOPPED],
+                                       [self.pause_button, "Pause", files.Images.PAUSE],
+                                       [self.play_button, "Play", files.Images.PLAY])
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -231,50 +233,39 @@ class HQMediaPlayer(QWidget):
         else:
             return QIcon(files.Images.VOLUME_ERROR)
 
+    def set_button_displayed_info(self, *args):
+        """Set a button's Tooltip and Icon to something different.
+
+           A list must contain these in order:
+           0 - button
+           1 - tooltip
+           2 - image
+
+        :param args: Any number of list
+        """
+        for arg in args:
+            try:
+                button = arg[0]
+                tooltip = arg[1]
+                image = arg[2]
+            except IndexError:
+                self.dbg_console.write("set_button_displayed_info() failed, index invalid:")
+                continue
+
+            try:
+                button.setToolTip(str(tooltip))
+                if isinstance(image, QIcon):
+                    button.setIcon(image)
+                else:
+                    button.setIcon(QIcon(image))
+            except AttributeError:
+                self.dbg_console.write("set_button_displayed_info() failed, arg invalid:"
+                                       "\n  [{0}, '{1}', {2}]".format(str(button), str(tooltip), str(image)))
+
     def reset_duration_slider(self):
         self.music_position_label.setText("00:00")
         self.duration_slider.setValue(0)
         self.duration_slider.setMaximum(271)
-
-    def set_to_play(self):
-        self.play_button.setToolTip("Play")
-        self.play_button.setIcon(QIcon(files.Images.PLAY))
-
-    def set_to_playing(self):
-        self.play_button.setToolTip("Playing")
-        self.play_button.setIcon(QIcon(files.Images.PLAYING))
-
-    def set_to_pause(self):
-        self.pause_button.setToolTip("Pause")
-        self.pause_button.setIcon(QIcon(files.Images.PAUSE))
-
-    def set_to_paused(self):
-        self.pause_button.setToolTip("Paused")
-        self.pause_button.setIcon(QIcon(files.Images.PAUSED))
-
-    def set_to_mute(self):
-        self.mute_button.setToolTip("Muted")
-        self.mute_button.setIcon(QIcon(files.Images.MUTED))
-
-    def set_to_unmuted(self):
-        self.mute_button.setToolTip("Mute")
-        self.mute_button.setIcon(self.check_volume_value(self.value_when_muted))
-
-    def set_to_repeat(self):
-        self.repeat_button.setToolTip("Repeat")
-        self.repeat_button.setIcon(QIcon(files.Images.REPEAT))
-
-    def set_to_repeating(self):
-        self.repeat_button.setToolTip("Repeating")
-        self.repeat_button.setIcon(QIcon(files.Images.REPEATING))
-
-    def set_to_stop(self):
-        self.stop_button.setToolTip("Stop")
-        self.stop_button.setIcon(QIcon(files.Images.STOP))
-
-    def set_to_stopped(self):
-        self.stop_button.setToolTip("Stopped")
-        self.stop_button.setIcon(QIcon(files.Images.STOPPED))
 
     def create_connections(self):
         self.clear_console_button.clicked.connect(self.clear_console_clicked)
@@ -305,11 +296,13 @@ class HQMediaPlayer(QWidget):
         self.player.mediaStatusChanged.connect(self.player_state_changed)
 
 
-def main():
+def start_application():
+    import sys
     app = QApplication(sys.argv)
     w_media_player = HQMediaPlayer()
     w_media_player.show()
     sys.exit(app.exec_())
 
 
-main()
+if __name__ == '__main__':
+    start_application()

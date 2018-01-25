@@ -1,1 +1,1 @@
-start pythonw hqmediaplayer.py
+start python hqmediaplayer.py

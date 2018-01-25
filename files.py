@@ -29,4 +29,10 @@ MUSIC_MIBILIS = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
 MUSIC_EXCITE_BIKE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
                      "HighQualityVideoGameRipsVoice\\Excitebike Music - Title BGM A.mp3")
 
-MAIN_UI = "hqmediaplayer.ui"
+MUSIC_LETS_PRACTICE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
+                       "HighQualityVideoGameRipGlitch\\Lets Practice! (OST Version) - Rhythm Heaven.mp3")
+
+DEBUG_FILE = "debug_file.txt"
+
+OLD_UI = "hqmediaplayer.ui"
+MAIN_WINDOW_UI = "mainwindow.ui"
