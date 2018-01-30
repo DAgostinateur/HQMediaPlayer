@@ -13,7 +13,7 @@ from PyQt5 import uic
 
 # TODO:
 # Maybe create QPushButtons, QLabel, etc. in .py instead .ui
-# Move the console
+# Add labels for Title, Artist, etc.
 # Make a better looking UI
 # Create a Playlist class
 # QtxGlobalShortcuts, look into that
@@ -46,8 +46,6 @@ def check_keys(key_list: list, wanted_key_list: list):
     :return: Returns whether the list of keys matches the wanted list.
     """
     key_count = 0
-    print(key_list)
-    print(wanted_key_list)
     for key in key_list:
         for wanted_key in wanted_key_list:
             if key == wanted_key:
@@ -74,36 +72,58 @@ class HQMediaPlayer(QMainWindow):
 
         self.song = WSong(files.MUSIC_LETS_PRACTICE)
         self.player = QMediaPlayer()
-        self.dbg_console = embedded_console.EmbeddedConsole(self)
+        self.dbg_console = embedded_console.EmbeddedConsole()
 
         self.create_connections()
+
+        self.album_art_label.setScaledContents(True)
 
         self.player.setMedia(self.song.content)
         self.player.setVolume(self.value_when_muted)
 
         if False:
             # Helps for intellisense
-            self.dbg_console_label = QLabel()
             self.music_position_label = QLabel()
+            self.album_art_label = QLabel()
+            self.artist_label = QLabel()
+            self.length_label = QLabel()
+            self.title_label = QLabel()
+
             self.music_box = QGroupBox()
+            self.music_info_box = QGroupBox()
+
             self.volume_slider = QSlider()
             self.duration_slider = QSlider()
-            self.clear_console_button = QPushButton()
+
             self.play_button = QPushButton()
             self.pause_button = QPushButton()
             self.mute_button = QPushButton()
             self.repeat_button = QPushButton()
             self.stop_button = QPushButton()
 
+            self.main_menubar = QMenuBar()
+            self.file_menu = QMenu()
+            self.help_menu = QMenu()
+
+            self.debug_console_action = QAction()
+
+            self.main_statusbar = QStatusBar()
+
+    def debug_console_action_triggered(self):
+        if not self.dbg_console.isVisible():
+            self.dbg_console.show()
+        else:
+            self.dbg_console.close()
+
     def duration_slider_pressed(self):
         self.player.setMuted(True)
+
+    def duration_slider_moved(self, value):
+        self.player.setPosition(value)
 
     def duration_slider_released(self):
         self.player.setMuted(False)
         self.duration_slider.clearFocus()
-
-    def duration_slider_moved(self, value):
-        self.player.setPosition(value)
 
     def player_position_changed(self, position):
         if not self.player.state() == QMediaPlayer.StoppedState:
@@ -115,6 +135,7 @@ class HQMediaPlayer(QMainWindow):
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
             self.reset_duration_slider()
+            self.reset_music_info()
             self.duration_slider.setDisabled(True)
             self.set_button_displayed_info([self.stop_button, "Stopped", files.Images.STOPPED],
                                            [self.play_button, "Play", files.Images.PLAY])
@@ -127,10 +148,6 @@ class HQMediaPlayer(QMainWindow):
         self.mute_button.setIcon(self.check_volume_value(self.volume_slider.value()))
         self.volume_slider.setToolTip(str(self.volume_slider.value()))
 
-    def clear_console_clicked(self):
-        self.dbg_console.clear()
-        self.clear_console_button.clearFocus()
-
     def play_button_clicked(self):
         if self.player.state() == QMediaPlayer.PlayingState \
                 or self.player.state() == QMediaPlayer.StoppedState:
@@ -139,10 +156,26 @@ class HQMediaPlayer(QMainWindow):
             self.reset_duration_slider()
             self.duration_slider.setMaximum(self.song.get_player_duration())
 
-            self.dbg_console.write(
-                "Title: {0}\nArtist: {1}\nAlbum: {2}\nDuration: {3}".format(
-                    self.song.get_info(WSong.TITLE), self.song.get_info(WSong.ARTIST),
-                    self.song.get_info(WSong.ALBUM), format_duration(self.song.get_real_duration())))
+            title = self.song.get_info(WSong.TITLE)
+            artist = self.song.get_info(WSong.ARTIST)
+            length = format_duration(self.song.get_real_duration())
+
+            self.title_label.setText(("Title  : " + title))
+            self.artist_label.setText(("Artist : " + artist))
+            self.length_label.setText(("Length : " + length))
+
+            self.title_label.setToolTip(title)
+            self.artist_label.setToolTip(artist)
+            self.length_label.setToolTip(length)
+
+            self.title_label.adjustSize()
+            self.artist_label.adjustSize()
+            self.length_label.adjustSize()
+
+            self.song.get_apic(True)
+            self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
+
+            self.song.remove_apic_file()
             self.player.play()
         elif self.player.state() == QMediaPlayer.PausedState:
             self.player.play()
@@ -180,6 +213,7 @@ class HQMediaPlayer(QMainWindow):
     def stop_button_clicked(self):
         self.player.stop()
         self.reset_duration_slider()
+        self.reset_music_info()
         self.duration_slider.setDisabled(True)
         self.set_button_displayed_info([self.stop_button, "Stopped", files.Images.STOPPED],
                                        [self.pause_button, "Pause", files.Images.PAUSE],
@@ -201,6 +235,7 @@ class HQMediaPlayer(QMainWindow):
             pass
 
     def process_multi_keys(self, key_list):
+        print(key_list)
         if (check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
             if self.player.state() == QMediaPlayer.PlayingState:
@@ -214,6 +249,9 @@ class HQMediaPlayer(QMainWindow):
             self.volume_slider.setValue(self.volume_slider.value() - 5)
         elif check_keys(key_list, [Qt.Key_MediaStop]):
             self.stop_button_clicked()
+
+    def closeEvent(self, event: QCloseEvent):
+        self.dbg_console.close()
 
     @staticmethod
     def check_volume_value(value: int):
@@ -267,9 +305,13 @@ class HQMediaPlayer(QMainWindow):
         self.duration_slider.setValue(0)
         self.duration_slider.setMaximum(271)
 
-    def create_connections(self):
-        self.clear_console_button.clicked.connect(self.clear_console_clicked)
+    def reset_music_info(self):
+        self.title_label.setText("Title  : ")
+        self.artist_label.setText("Artist : ")
+        self.length_label.setText("Length : ")
+        self.album_art_label.clear()
 
+    def create_connections(self):
         self.play_button.clicked.connect(self.play_button_clicked)
         self.play_button.released.connect(self.play_button.clearFocus)
 
@@ -291,6 +333,8 @@ class HQMediaPlayer(QMainWindow):
         self.duration_slider.sliderMoved.connect(self.duration_slider_moved)
         self.duration_slider.sliderPressed.connect(self.duration_slider_pressed)
         self.duration_slider.sliderReleased.connect(self.duration_slider_released)
+
+        self.debug_console_action.triggered.connect(self.debug_console_action_triggered)
 
         self.player.positionChanged.connect(self.player_position_changed)
         self.player.mediaStatusChanged.connect(self.player_state_changed)

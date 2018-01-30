@@ -12,3 +12,4 @@
 *.pdn
 *.lnk
 .idea/vcs.xml
+debug_file.txt

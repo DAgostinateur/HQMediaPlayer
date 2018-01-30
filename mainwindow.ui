@@ -37,7 +37,7 @@
       <x>403</x>
       <y>10</y>
       <width>291</width>
-      <height>161</height>
+      <height>162</height>
      </rect>
     </property>
     <property name="font">
@@ -310,57 +310,76 @@ border-radius: 4px;
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="dbg_console_label">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
+   <widget class="QGroupBox" name="music_info_box">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>15</y>
-      <width>63</width>
-      <height>19</height>
+      <x>7</x>
+      <y>17</y>
+      <width>381</width>
+      <height>155</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-      <underline>true</underline>
-     </font>
-    </property>
-    <property name="text">
-     <string>Console</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="clear_console_button">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>15</y>
-      <width>63</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="toolTip">
-     <string>Clear Console</string>
-    </property>
-    <property name="text">
-     <string>Clear</string>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>13</width>
-      <height>16</height>
-     </size>
-    </property>
+    <widget class="QLabel" name="length_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>55</y>
+       <width>54</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Length : </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="artist_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>35</y>
+       <width>54</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Artist : </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="title_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>15</y>
+       <width>48</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Title  : </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="album_art_label">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>13</y>
+       <width>128</width>
+       <height>128</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QMenuBar" name="main_menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -369,24 +388,54 @@ border-radius: 4px;
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <widget class="QMenu" name="file_menu">
+    <property name="font">
+     <font>
+      <family>Consolas</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuDebug_Console">
+   <widget class="QMenu" name="help_menu">
+    <property name="font">
+     <font>
+      <family>Consolas</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionDebug_Console"/>
+    <addaction name="debug_console_action"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuDebug_Console"/>
+   <addaction name="file_menu"/>
+   <addaction name="help_menu"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionDebug_Console">
+  <widget class="QStatusBar" name="main_statusbar"/>
+  <action name="debug_console_action">
    <property name="text">
     <string>Debug Console</string>
+   </property>
+   <property name="iconText">
+    <string>Debug Console</string>
+   </property>
+   <property name="toolTip">
+    <string>Debug Console</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

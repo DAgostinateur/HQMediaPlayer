@@ -23,6 +23,8 @@ class Images:
     PYTHON_LOGO = "images\\logo.png"
 
 
+TEMP_PNG_FILE = "temp_image.jpg"
+
 MUSIC_MIBILIS = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
                  "HighQualityVideoGameRipsVoice\\Boss Fight - Mibiblis Quest.mp3")
 
