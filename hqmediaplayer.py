@@ -3,6 +3,7 @@ import ctypes
 import files
 import embedded_console
 from audio import WSong
+from widgets.volume_slider import VolumeSlider
 
 from PyQt5.QtMultimedia import *
 from PyQt5.QtWidgets import *
@@ -20,6 +21,8 @@ from PyQt5 import uic
 
 # Fixes the TaskBar Icon bug
 # https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7/1552105#1552105
+
+
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("dagostinateur_woh.hqmediaplayer.v1")
 
 
@@ -45,41 +48,44 @@ def check_keys(key_list: list, wanted_key_list: list):
     :param wanted_key_list: List of keys that needs to be pressed.
     :return: Returns whether the list of keys matches the wanted list.
     """
-    key_count = 0
-    for key in key_list:
-        for wanted_key in wanted_key_list:
-            if key == wanted_key:
-                key_count += 1
-                break
+    valid_key_count = 0
+    for wanted_key in wanted_key_list:
+        if any(wanted_key == key for key in key_list):
+            valid_key_count += 1
 
-    return key_count == len(wanted_key_list)
+    return valid_key_count == len(wanted_key_list)
 
 
 # noinspection PyCallByClass,PyArgumentList,PyUnresolvedReferences
 class HQMediaPlayer(QMainWindow):
-    muted = False
-    repeating = False
-    value_when_muted = 25
-
-    key_list = []
-    first_release = False
 
     def __init__(self, parent=None):
         super(HQMediaPlayer, self).__init__(parent)
+        self.muted = False
+        self.repeating = False
+
+        self.key_list = []
+        self.first_release = False
+
         uic.loadUi(files.MAIN_WINDOW_UI, self)
-        self.setFocus()
         self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
 
         self.song = WSong(files.MUSIC_LETS_PRACTICE)
         self.player = QMediaPlayer()
         self.dbg_console = embedded_console.EmbeddedConsole()
-
+        self.volume_slider = VolumeSlider(self.music_box)
         self.create_connections()
 
         self.album_art_label.setScaledContents(True)
 
         self.player.setMedia(self.song.content)
-        self.player.setVolume(self.value_when_muted)
+        self.player.setVolume(self.volume_slider.default_volume)
+
+        self.play_button.setFocusPolicy(Qt.ClickFocus)
+        self.pause_button.setFocusPolicy(Qt.ClickFocus)
+        self.mute_button.setFocusPolicy(Qt.ClickFocus)
+        self.repeat_button.setFocusPolicy(Qt.ClickFocus)
+        self.stop_button.setFocusPolicy(Qt.ClickFocus)
 
         if False:
             # Helps for intellisense
@@ -92,7 +98,6 @@ class HQMediaPlayer(QMainWindow):
             self.music_box = QGroupBox()
             self.music_info_box = QGroupBox()
 
-            self.volume_slider = QSlider()
             self.duration_slider = QSlider()
 
             self.play_button = QPushButton()
@@ -140,14 +145,6 @@ class HQMediaPlayer(QMainWindow):
             self.set_button_displayed_info([self.stop_button, "Stopped", files.Images.STOPPED],
                                            [self.play_button, "Play", files.Images.PLAY])
 
-    def volume_slider_value_changed(self):
-        self.player.setVolume(self.volume_slider.value())
-        if self.muted:
-            self.muted = False
-
-        self.mute_button.setIcon(self.check_volume_value(self.volume_slider.value()))
-        self.volume_slider.setToolTip(str(self.volume_slider.value()))
-
     def play_button_clicked(self):
         if self.player.state() == QMediaPlayer.PlayingState \
                 or self.player.state() == QMediaPlayer.StoppedState:
@@ -172,10 +169,10 @@ class HQMediaPlayer(QMainWindow):
             self.artist_label.adjustSize()
             self.length_label.adjustSize()
 
-            self.song.get_apic(True)
-            self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
+            if self.song.get_apic(True):
+                self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
+                self.song.remove_apic_file()
 
-            self.song.remove_apic_file()
             self.player.play()
         elif self.player.state() == QMediaPlayer.PausedState:
             self.player.play()
@@ -193,12 +190,12 @@ class HQMediaPlayer(QMainWindow):
     def mute_button_clicked(self):
         if self.muted:
             self.set_button_displayed_info([self.mute_button, "Muted",
-                                            self.check_volume_value(self.value_when_muted)])
-            self.volume_slider.setValue(self.value_when_muted)
+                                            self.volume_slider.get_volume_icon()])
+            self.volume_slider.before_mute_volume()
             self.muted = False
         else:
-            self.value_when_muted = self.volume_slider.value()
-            self.volume_slider.setValue(0)
+            self.volume_slider.set_volume_when_muted()
+            self.volume_slider.mute_volume()
             self.set_button_displayed_info([self.mute_button, "Mute", files.Images.MUTED])
             self.muted = True
 
@@ -244,32 +241,17 @@ class HQMediaPlayer(QMainWindow):
                 self.play_button_clicked()
 
         elif check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Up]):
-            self.volume_slider.setValue(self.volume_slider.value() + 5)
+            self.volume_slider.increase_volume(5)
         elif check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Down]):
-            self.volume_slider.setValue(self.volume_slider.value() - 5)
+            self.volume_slider.decrease_volume(5)
         elif check_keys(key_list, [Qt.Key_MediaStop]):
             self.stop_button_clicked()
 
+        if any(key_list.count(x) > 1 for x in key_list):
+            del key_list[:]
+
     def closeEvent(self, event: QCloseEvent):
         self.dbg_console.close()
-
-    @staticmethod
-    def check_volume_value(value: int):
-        """Checks the volume and returns the appropriate image for mute_button.
-
-        :param value: Volume value or muted value
-        :return: QIcon with appropriate image
-        """
-        if value < 1:
-            return QIcon(files.Images.VOLUME_0)
-        elif value <= 33:
-            return QIcon(files.Images.VOLUME_LESS_33)
-        elif value <= 66:
-            return QIcon(files.Images.VOLUME_LESS_66)
-        elif value <= 100:
-            return QIcon(files.Images.VOLUME_LESS_100)
-        else:
-            return QIcon(files.Images.VOLUME_ERROR)
 
     def set_button_displayed_info(self, *args):
         """Set a button's Tooltip and Icon to something different.
@@ -327,9 +309,6 @@ class HQMediaPlayer(QMainWindow):
         self.stop_button.clicked.connect(self.stop_button_clicked)
         self.stop_button.released.connect(self.stop_button.clearFocus)
 
-        self.volume_slider.valueChanged.connect(self.volume_slider_value_changed)
-        self.volume_slider.sliderReleased.connect(self.volume_slider.clearFocus)
-
         self.duration_slider.sliderMoved.connect(self.duration_slider_moved)
         self.duration_slider.sliderPressed.connect(self.duration_slider_pressed)
         self.duration_slider.sliderReleased.connect(self.duration_slider_released)
@@ -343,8 +322,8 @@ class HQMediaPlayer(QMainWindow):
 def start_application():
     import sys
     app = QApplication(sys.argv)
-    w_media_player = HQMediaPlayer()
-    w_media_player.show()
+    media_player = HQMediaPlayer()
+    media_player.show()
     sys.exit(app.exec_())
 
 

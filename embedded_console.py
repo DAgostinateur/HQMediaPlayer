@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextCursor, QFont
+from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from PyQt5.QtWidgets import QTextEdit, QWidget
 import files
 
@@ -15,6 +15,7 @@ class EmbeddedConsole(QWidget):
         self.setGeometry(50, 50, 480, 360)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Debug Console")
+        self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
 
         self.console = QTextEdit(self)
         self.console.setGeometry(0, 0, 480, 360)

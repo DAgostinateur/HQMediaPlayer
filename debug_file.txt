@@ -1,4 +1,0 @@
-set_button_displayed_info() failed, arg invalid:
-  [<embedded_console.EmbeddedConsole object at 0x000002AF2C0A1A68>, 'Repeat', <PyQt5.QtGui.QIcon object at 0x000002AF2C0A14C8>]
-set_button_displayed_info() failed, arg invalid:
-  [<embedded_console.EmbeddedConsole object at 0x00000280B5320A68>, 'Repeat', <PyQt5.QtGui.QIcon object at 0x00000280B53204C8>]

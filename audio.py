@@ -46,7 +46,7 @@ class WSong:
             tags = mutagen.mp3.Open(self.file_location)
         except mutagen.MutagenError:
             return False
-        data = ""
+        data = b""
         for i in tags:
             if i.startswith("APIC"):
                 data = tags[i].data
@@ -61,7 +61,8 @@ class WSong:
 
         return data
 
-    def remove_apic_file(self):
+    @staticmethod
+    def remove_apic_file():
         os.remove(files.TEMP_PNG_FILE)
 
     def get_real_duration(self):
