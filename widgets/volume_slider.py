@@ -1,11 +1,12 @@
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QSlider, QPushButton
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtWidgets import QSlider
+from PyQt5.QtCore import Qt
 
 import files
+import util
 
 
+# noinspection PyUnresolvedReferences
 class VolumeSlider(QSlider):
     default_volume = 25
     volume_when_muted = default_volume
@@ -23,23 +24,23 @@ class VolumeSlider(QSlider):
         self.sliderReleased.connect(self.vs_slider_released)
         self.valueChanged.connect(self.vs_value_changed)
 
-    def set_volume_when_muted(self):
-        self.volume_when_muted = self.value()
+    @property
+    def mainwindow(self):
+        return util.get_upper_parentwidget(self, 3)
 
     def vs_slider_released(self):
         self.clearFocus()
 
     def vs_value_changed(self, value):
-        # print(self.parentWidget().objectName()) # QGroupBox
-        # print(self.parentWidget().parentWidget().objectName()) # QGroupBox, QWidget
-        # print(self.parentWidget().parentWidget().parentWidget().objectName()) # QGroupBox, QWidget, QMainWindow
+        self.mainwindow.player.setVolume(value)
+        if self.mainwindow.mute_button.muted:
+            self.mainwindow.mute_button.muted = False
 
-        self.parentWidget().parentWidget().parentWidget().player.setVolume(value)
-        if self.parentWidget().parentWidget().parentWidget().muted:
-            self.parentWidget().parentWidget().parentWidget().muted = False
-
-        self.parentWidget().findChild(QPushButton, "mute_button").setIcon(self.get_volume_icon())
+        self.mainwindow.mute_button.setIcon(self.get_volume_icon())
         self.setToolTip(str(value))
+
+    def set_volume_when_muted(self):
+        self.volume_when_muted = self.value()
 
     def before_mute_volume(self):
         self.setValue(self.volume_when_muted)

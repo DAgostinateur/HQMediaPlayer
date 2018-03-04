@@ -24,6 +24,8 @@ class Images:
 
 
 TEMP_PNG_FILE = "temp_image.jpg"
+DEBUG_FILE = "debug_file.txt"
+DURATION_SLIDER_STYLESHEET = "duration_slider_stylesheet.txt"
 
 MUSIC_MIBILIS = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
                  "HighQualityVideoGameRipsVoice\\Boss Fight - Mibiblis Quest.mp3")
@@ -33,8 +35,6 @@ MUSIC_EXCITE_BIKE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
 
 MUSIC_LETS_PRACTICE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
                        "HighQualityVideoGameRipGlitch\\Lets Practice! (OST Version) - Rhythm Heaven.mp3")
-
-DEBUG_FILE = "debug_file.txt"
 
 OLD_UI = "hqmediaplayer.ui"
 MAIN_WINDOW_UI = "mainwindow.ui"
