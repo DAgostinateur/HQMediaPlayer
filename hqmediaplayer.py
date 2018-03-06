@@ -3,23 +3,17 @@ import sys
 
 import files
 import util
-from audio import WSong
-from widgets import (volume_slider, mute_button, repeat_button,
-                     stop_button, pause_button, play_button,
-                     music_position_label, duration_slider, embedded_console)
-# PyCharm doesn't understand "from widgets import *", so I don't have intellisense for every class
-
+import audio
+from widgets import (music_control_box, music_info_box, embedded_console)
 
 from PyQt5.QtMultimedia import QMediaPlayer
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QGroupBox,
-                             QMenu, QMenuBar, QAction, QStatusBar)
-from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QPixmap
-from PyQt5.QtCore import Qt
-from PyQt5 import uic
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QMenu, QAction, QWidget)
+from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
+from PyQt5.QtCore import Qt, QSize
 
 
 # TODO:
-# Maybe create QPushButtons, QLabel, etc. in .py instead .ui
+# Change TitleLabel, etc. to a Label and TextEdit combo
 # Make a better looking UI
 # Create a Playlist class
 # QtxGlobalShortcuts, look into that
@@ -37,48 +31,26 @@ class HQMediaPlayer(QMainWindow):
         self.key_list = []
         self.first_release = False
 
-        uic.loadUi(files.MAIN_WINDOW_UI, self)
+        self.setMinimumSize(702, 474)
+        self.setFont(QFont("Consolas"))
+        self.setWindowTitle("HQMediaPlayer")
+        self.setIconSize(QSize(32, 32))
         self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
 
-        self.song = WSong(files.MUSIC_LETS_PRACTICE)
+        self.centralwidget = QWidget(self)
+        self.centralwidget.setGeometry(0, 21, 702, 433)
+
+        self.song = audio.WSong(files.MUSIC_DDD)
         self.player = QMediaPlayer()
         self.dbg_console = embedded_console.EmbeddedConsole()
+        self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
+        self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
 
-        self.volume_slider = volume_slider.VolumeSlider(self.music_box)
-        self.duration_slider = duration_slider.DurationSlider(self.music_box)
-
-        self.mute_button = mute_button.MuteButton(self.music_box)
-        self.repeat_button = repeat_button.RepeatButton(self.music_box)
-        self.stop_button = stop_button.StopButton(self.music_box)
-        self.pause_button = pause_button.PauseButton(self.music_box)
-        self.play_button = play_button.PlayButton(self.music_box)
-
-        self.music_position_label = music_position_label.MusicPositionLabel(self.music_box)
-
+        self.create_menubar()
         self.create_connections()
 
-        self.album_art_label.setScaledContents(True)
-
         self.player.setMedia(self.song.content)
-        self.player.setVolume(self.volume_slider.default_volume)
-
-        if False:
-            # Helps for intellisense
-            self.album_art_label = QLabel()
-            self.artist_label = QLabel()
-            self.length_label = QLabel()
-            self.title_label = QLabel()
-
-            self.music_box = QGroupBox()
-            self.music_info_box = QGroupBox()
-
-            self.main_menubar = QMenuBar()
-            self.file_menu = QMenu()
-            self.help_menu = QMenu()
-
-            self.debug_console_action = QAction()
-
-            self.main_statusbar = QStatusBar()
+        self.player.setVolume(self.music_control_box.volume_slider.default_volume)
 
     def debug_console_action_triggered(self):
         if not self.dbg_console.isVisible():
@@ -88,42 +60,21 @@ class HQMediaPlayer(QMainWindow):
 
     def player_position_changed(self, position):
         if not self.player.state() == QMediaPlayer.StoppedState:
-            self.music_position_label.setText(util.format_duration(position))
-            self.duration_slider.setValue(position)
+            self.music_control_box.music_position_label.setText(util.format_duration(position))
+            self.music_control_box.duration_slider.setValue(position)
 
     def player_state_changed(self, status):
-        if status == QMediaPlayer.EndOfMedia and self.repeat_button.repeating:
+        if status == QMediaPlayer.EndOfMedia and self.music_control_box.repeat_button.repeating:
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
-            self.reset_duration_slider()
-            self.reset_music_info()
-            self.duration_slider.setDisabled(True)
+            self.music_control_box.reset_duration()
+            self.music_info_box.reset_music_info()
+            self.music_control_box.duration_slider.setDisabled(True)
 
-            self.stop_button.setToolTip("Stopped")
-            self.stop_button.setIcon(QIcon(files.Images.STOPPED))
-            self.play_button.setToolTip("Play")
-            self.play_button.setIcon(QIcon(files.Images.PLAY))
-
-    def set_song_info(self):
-        title = self.song.get_info(WSong.TITLE)
-        artist = self.song.get_info(WSong.ARTIST)
-        length = util.format_duration(self.song.get_real_duration())
-
-        self.title_label.setText(("Title  : " + title))
-        self.artist_label.setText(("Artist : " + artist))
-        self.length_label.setText(("Length : " + length))
-
-        self.title_label.setToolTip(title)
-        self.artist_label.setToolTip(artist)
-        self.length_label.setToolTip(length)
-
-        self.title_label.adjustSize()
-        self.artist_label.adjustSize()
-        self.length_label.adjustSize()
-
-        if self.song.get_apic(True):
-            self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
-            self.song.remove_apic_file()
+            self.music_control_box.stop_button.setToolTip("Stopped")
+            self.music_control_box.stop_button.setIcon(QIcon(files.Images.STOPPED))
+            self.music_control_box.play_button.setToolTip("Play")
+            self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -145,20 +96,20 @@ class HQMediaPlayer(QMainWindow):
         if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
             if self.player.state() == QMediaPlayer.PlayingState:
-                self.pause_button.pb_clicked()
+                self.music_control_box.pause_button.pb_clicked()
             elif self.player.state() == QMediaPlayer.PausedState or self.player.state() == QMediaPlayer.StoppedState:
-                self.play_button.plb_clicked()
+                self.music_control_box.play_button.plb_clicked()
 
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Up]):
-            self.volume_slider.increase_volume(5)
+            self.music_control_box.volume_slider.increase_volume(5)
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Down]):
-            self.volume_slider.decrease_volume(5)
+            self.music_control_box.volume_slider.decrease_volume(5)
         elif util.check_keys(key_list, [Qt.Key_MediaStop]):
-            self.stop_button.sb_clicked()
+            self.music_control_box.stop_button.sb_clicked()
         elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
-            self.play_button.plb_clicked()
+            self.music_control_box.play_button.plb_clicked()
         elif util.check_keys(key_list, [Qt.Key_MediaPause]):
-            self.pause_button.pb_clicked()
+            self.music_control_box.pause_button.pb_clicked()
 
         if any(key_list.count(x) > 1 for x in key_list):
             del key_list[:]
@@ -166,25 +117,30 @@ class HQMediaPlayer(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         self.dbg_console.close()
 
-    def reset_duration_slider(self):
-        self.music_position_label.reset_time()
-        self.duration_slider.reset_slider()
-
-    def reset_music_info(self):
-        self.title_label.setText("Title  : ")
-        self.artist_label.setText("Artist : ")
-        self.length_label.setText("Length : ")
-        self.album_art_label.clear()
-
-        self.title_label.setToolTip("")
-        self.artist_label.setToolTip("")
-        self.length_label.setToolTip("")
-
     def create_connections(self):
-        self.debug_console_action.triggered.connect(self.debug_console_action_triggered)
-
         self.player.positionChanged.connect(self.player_position_changed)
         self.player.mediaStatusChanged.connect(self.player_state_changed)
+
+    def create_menubar(self):
+        debug_console_action = QAction(self)
+        debug_console_action.setText("Debug Console")
+        debug_console_action.setIconText("Debug Console")
+        debug_console_action.setToolTip("Debug Console")
+        debug_console_action.setFont(QFont("Consolas", 10))
+        debug_console_action.triggered.connect(self.debug_console_action_triggered)
+
+        file_menu = QMenu(self)
+        file_menu.setTitle("File")
+        file_menu.setFont(QFont("Consolas", 10))
+
+        help_menu = QMenu(self)
+        help_menu.setTitle("Help")
+        help_menu.setFont(QFont("Consolas", 10))
+        help_menu.addAction(debug_console_action)
+
+        menubar = self.menuBar()
+        menubar.addMenu(file_menu)
+        menubar.addMenu(help_menu)
 
 
 if __name__ == '__main__':

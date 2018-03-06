@@ -34,6 +34,10 @@ class DurationSlider(QSlider):
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
 
+    @property
+    def music_control_box(self):
+        return self.parentWidget()
+
     def ds_slider_moved(self, value):
         self.mainwindow.player.setPosition(value)
 

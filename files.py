@@ -36,5 +36,5 @@ MUSIC_EXCITE_BIKE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
 MUSIC_LETS_PRACTICE = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
                        "HighQualityVideoGameRipGlitch\\Lets Practice! (OST Version) - Rhythm Heaven.mp3")
 
-OLD_UI = "hqmediaplayer.ui"
-MAIN_WINDOW_UI = "mainwindow.ui"
+MUSIC_DDD = ("D:\\Desktop files\\Music\\HighQualityVideoGameRips\\"
+             "HighQualityVideoGameRipGlitch\\Dire Dire Docks (JP Version) - Super Mario 64.mp3")

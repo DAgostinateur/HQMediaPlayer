@@ -16,5 +16,9 @@ class MusicPositionLabel(QLabel):
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
 
+    @property
+    def music_control_box(self):
+        return self.parentWidget()
+
     def reset_time(self):
         self.setText("00:00")

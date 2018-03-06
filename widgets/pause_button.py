@@ -24,6 +24,10 @@ class PauseButton(QPushButton):
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
 
+    @property
+    def music_control_box(self):
+        return self.parentWidget()
+
     def pb_released(self):
         self.clearFocus()
 
@@ -31,7 +35,7 @@ class PauseButton(QPushButton):
         if not self.mainwindow.player.state() == QMediaPlayer.StoppedState:
             self.mainwindow.player.pause()
 
-            self.mainwindow.play_button.setToolTip("Play")
-            self.mainwindow.play_button.setIcon(QIcon(files.Images.PLAY))
+            self.music_control_box.play_button.setToolTip("Play")
+            self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
             self.setToolTip("Paused")
             self.setIcon(QIcon(files.Images.PAUSED))

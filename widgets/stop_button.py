@@ -24,18 +24,22 @@ class StopButton(QPushButton):
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
 
+    @property
+    def music_control_box(self):
+        return self.parentWidget()
+
     def sb_released(self):
         self.clearFocus()
 
     def sb_clicked(self):
         self.mainwindow.player.stop()
-        self.mainwindow.reset_duration_slider()
-        self.mainwindow.reset_music_info()
-        self.mainwindow.duration_slider.setDisabled(True)
+        self.music_control_box.reset_duration()
+        self.mainwindow.music_info_box.reset_music_info()
+        self.music_control_box.duration_slider.setDisabled(True)
 
-        self.mainwindow.pause_button.setToolTip("Pause")
-        self.mainwindow.pause_button.setIcon(QIcon(files.Images.PAUSE))
-        self.mainwindow.play_button.setToolTip("Play")
-        self.mainwindow.play_button.setIcon(QIcon(files.Images.PLAY))
+        self.music_control_box.pause_button.setToolTip("Pause")
+        self.music_control_box.pause_button.setIcon(QIcon(files.Images.PAUSE))
+        self.music_control_box.play_button.setToolTip("Play")
+        self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
         self.setToolTip("Stopped")
         self.setIcon(QIcon(files.Images.STOPPED))

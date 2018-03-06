@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextCursor, QFont, QIcon
 from PyQt5.QtWidgets import QTextEdit, QWidget
+
 import files
 
 

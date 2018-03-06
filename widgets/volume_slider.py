@@ -28,15 +28,19 @@ class VolumeSlider(QSlider):
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
 
+    @property
+    def music_control_box(self):
+        return self.parentWidget()
+
     def vs_slider_released(self):
         self.clearFocus()
 
     def vs_value_changed(self, value):
         self.mainwindow.player.setVolume(value)
-        if self.mainwindow.mute_button.muted:
-            self.mainwindow.mute_button.muted = False
+        if self.music_control_box.mute_button.muted:
+            self.music_control_box.mute_button.muted = False
 
-        self.mainwindow.mute_button.setIcon(self.get_volume_icon())
+        self.music_control_box.mute_button.setIcon(self.get_volume_icon())
         self.setToolTip(str(value))
 
     def set_volume_when_muted(self):
