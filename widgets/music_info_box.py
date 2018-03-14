@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
 
-from widgets import (title_label, artist_label, length_label, album_art_label)
+from widgets import (animated_label, album_art_label)
 
 import audio
 import util
@@ -14,26 +15,39 @@ class MusicInfoBox(QGroupBox):
         super(MusicInfoBox, self).__init__(parent)
         self.setGeometry(7, 17, 381, 155)
 
-        self.title_label = title_label.TitleLabel(self)
-        self.artist_label = artist_label.ArtistLabel(self)
-        self.length_label = length_label.LengthLabel(self)
+        self.title_info = animated_label.AnimatedLabel(self, 15, "Title  :", True)
+        self.artist_info = animated_label.AnimatedLabel(self, 35, "Artist :", True)
+        self.length_info = animated_label.AnimatedLabel(self, 55, "Length :", False)
         self.album_art_label = album_art_label.AlbumArtLabel(self)
+
+        self.timer = QTimer()
+        self.timer.setInterval(200)
+        self.timer.timeout.connect(self.animate_info)
 
     @property
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 2)
 
     def reset_music_info(self):
-        self.title_label.reset_title()
-        self.artist_label.reset_artist()
-        self.length_label.reset_length()
+        self.timer.stop()
+
+        self.title_info.reset_line_edit_text()
+        self.artist_info.reset_line_edit_text()
+        self.length_info.reset_line_edit_text()
         self.album_art_label.clear()
 
+    def animate_info(self):
+        self.title_info.animate_cursor()
+        self.artist_info.animate_cursor()
+        self.length_info.animate_cursor()
+
     def set_song_info(self):
-        self.title_label.set_title(self.mainwindow.song.get_info(audio.WSong.TITLE))
-        self.artist_label.set_artist(self.mainwindow.song.get_info(audio.WSong.ARTIST))
-        self.length_label.set_length(util.format_duration(self.mainwindow.song.get_real_duration()))
+        self.title_info.set_line_edit_text(self.mainwindow.song.get_info(audio.WSong.TITLE))
+        self.artist_info.set_line_edit_text(self.mainwindow.song.get_info(audio.WSong.ARTIST))
+        self.length_info.set_line_edit_text(util.format_duration(self.mainwindow.song.get_real_duration()))
 
         if self.mainwindow.song.get_apic(True):
             self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
             self.mainwindow.song.remove_apic_file()
+
+        self.timer.start()

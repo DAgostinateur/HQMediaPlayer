@@ -32,6 +32,9 @@ class PlayButton(QPushButton):
         self.clearFocus()
 
     def plb_clicked(self):
+        if not self.mainwindow.song.has_song():
+            return
+
         if self.mainwindow.player.state() == QMediaPlayer.PlayingState \
                 or self.mainwindow.player.state() == QMediaPlayer.StoppedState:
             self.mainwindow.player.stop()

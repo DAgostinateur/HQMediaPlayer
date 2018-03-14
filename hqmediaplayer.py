@@ -7,16 +7,18 @@ import audio
 from widgets import (music_control_box, music_info_box, embedded_console)
 
 from PyQt5.QtMultimedia import QMediaPlayer
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QMenu, QAction, QWidget)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog)
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
 
 
 # TODO:
-# Change TitleLabel, etc. to a Label and TextEdit combo
-# Make a better looking UI
 # Create a Playlist class
+# Save music file location for quick loading
+# Make a options widgets with a bunch of options
 # QtxGlobalShortcuts, look into that
+# Make a better looking UI
+# About Section
 
 
 # Fixes the TaskBar Icon bug
@@ -40,7 +42,7 @@ class HQMediaPlayer(QMainWindow):
         self.centralwidget = QWidget(self)
         self.centralwidget.setGeometry(0, 21, 702, 433)
 
-        self.song = audio.WSong(files.MUSIC_DDD)
+        self.song = audio.WSong()
         self.player = QMediaPlayer()
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
@@ -49,7 +51,6 @@ class HQMediaPlayer(QMainWindow):
         self.create_menubar()
         self.create_connections()
 
-        self.player.setMedia(self.song.content)
         self.player.setVolume(self.music_control_box.volume_slider.default_volume)
 
     def debug_console_action_triggered(self):
@@ -57,6 +58,14 @@ class HQMediaPlayer(QMainWindow):
             self.dbg_console.show()
         else:
             self.dbg_console.close()
+
+    def open_action_triggered(self):
+        file_name, file_type = QFileDialog.getOpenFileName(self, "Openfile", "/", "MP3 (*.mp3)")
+        if ".mp3" in file_type:
+            self.song.set_song(file_name)
+            self.player.setMedia(self.song.content)
+            self.music_control_box.stop_button.sb_clicked()
+            self.music_control_box.play_button.plb_clicked()
 
     def player_position_changed(self, position):
         if not self.player.state() == QMediaPlayer.StoppedState:
@@ -125,13 +134,19 @@ class HQMediaPlayer(QMainWindow):
         debug_console_action = QAction(self)
         debug_console_action.setText("Debug Console")
         debug_console_action.setIconText("Debug Console")
-        debug_console_action.setToolTip("Debug Console")
         debug_console_action.setFont(QFont("Consolas", 10))
         debug_console_action.triggered.connect(self.debug_console_action_triggered)
+
+        open_action = QAction(self)
+        open_action.setText("Open")
+        open_action.setIconText("Open")
+        open_action.setFont(QFont("Consolas", 10))
+        open_action.triggered.connect(self.open_action_triggered)
 
         file_menu = QMenu(self)
         file_menu.setTitle("File")
         file_menu.setFont(QFont("Consolas", 10))
+        file_menu.addAction(open_action)
 
         help_menu = QMenu(self)
         help_menu.setTitle("Help")

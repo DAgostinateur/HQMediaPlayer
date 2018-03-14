@@ -19,21 +19,30 @@ class WSong:
     TITLE = "title"
     ALBUM = "album"
 
-    def __init__(self, file_location: str):
-        if not is_music_file(file_location):
-            raise InvalidFile("{} -- is not valid".format(file_location))
+    def __init__(self):
+        self.file_location = None
+        self.mp3 = None
+        self.content = None  # For QMediaPlayer
 
+    def set_song(self, file_location: str):
         self.file_location = file_location
         self.mp3 = mutagen.mp3.EasyMP3(file_location)
-        self.content = QMediaContent(QUrl.fromLocalFile(file_location))  # For QMediaPlayer
+        self.content = QMediaContent(QUrl.fromLocalFile(file_location))
+
+
+    def has_song(self):
+        return not self.file_location is None
 
     def get_info(self, wanted_info: str = TITLE):
         """
 
         :return: Returns the song's artist.
         """
-        info = str(self.mp3[wanted_info])
-        return info[2:len(info) - 2]  # Removes the ['']
+        try:
+            info = str(self.mp3[wanted_info])
+            return info[2:len(info) - 2]  # Removes the ['']
+        except KeyError:
+            return "N/A"
 
     def get_apic(self, file_output=False):
         """Extracts album art from a given MP3 file.  Output is raw JPEG data.
