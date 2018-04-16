@@ -1,13 +1,15 @@
 import ctypes
 import sys
+import pypresence.client
 
 import files
 import util
 import audio
-from widgets import (music_control_box, music_info_box, embedded_console)
+import options_dialog
+from widgets import music_control_box, music_info_box, embedded_console
 
-from PyQt5.QtMultimedia import QMediaPlayer
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog)
+from PyQt5.QtMultimedia import QMediaPlayer, QAudio, QAudioDeviceInfo
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
 
@@ -15,7 +17,11 @@ from PyQt5.QtCore import Qt, QSize
 # TODO:
 # Create a Playlist class
 # Save music file location for quick loading
-# Make a options widgets with a bunch of options
+# Make an options widgets with a bunch of options:
+#   - Being able to change output device
+#   - Change PlayButton behaviour between 'restarting song' and 'doing nothing'
+#   - Change how fast the text scrolls
+#
 # QtxGlobalShortcuts, look into that
 # Make a better looking UI
 # About Section
@@ -28,6 +34,9 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("dagostinateur_woh
 
 # noinspection PyCallByClass,PyArgumentList,PyUnresolvedReferences
 class HQMediaPlayer(QMainWindow):
+    # Is this supposed to be hidden?
+    # There's no mention in pypresence or Discord documents to hide the application client id.
+    drpc_client_id = '434146683245297684'
     def __init__(self, parent=None):
         super(HQMediaPlayer, self).__init__(parent)
         self.key_list = []
@@ -37,13 +46,17 @@ class HQMediaPlayer(QMainWindow):
         self.setFont(QFont("Consolas"))
         self.setWindowTitle("HQMediaPlayer")
         self.setIconSize(QSize(32, 32))
-        self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
+        self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
 
         self.centralwidget = QWidget(self)
         self.centralwidget.setGeometry(0, 21, 702, 433)
 
+        # drpc = Discord Rich Presence
+        # The id that goes with it is the discord client id of the application
+        self.drpc = pypresence.client.Client(self.drpc_client_id)
         self.song = audio.WSong()
         self.player = QMediaPlayer()
+        self.options_dialog = options_dialog.OptionsDialog()
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
@@ -52,6 +65,11 @@ class HQMediaPlayer(QMainWindow):
         self.create_connections()
 
         self.player.setVolume(self.music_control_box.volume_slider.default_volume)
+        # all_devices = ""
+        # for d in QAudioDeviceInfo.availableDevices(QAudio.AudioOutput):
+        #     all_devices += "{}\n".format(d.deviceName())
+        # else:
+        #     self.dbg_console.write(all_devices)
 
     def debug_console_action_triggered(self):
         if not self.dbg_console.isVisible():
@@ -59,7 +77,20 @@ class HQMediaPlayer(QMainWindow):
         else:
             self.dbg_console.close()
 
-    def open_action_triggered(self):
+    def set_drpc_activity(self, state):
+        if self.song.has_song():
+            self.drpc.set_activity(large_image="app_logo",
+                                   state="Player {}".format(state),
+                                   details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
+        else:
+            self.drpc.set_activity(large_image="app_logo",
+                                   state="Player {}".format(state),
+                                   details="Listening to 'N/A'")
+
+    def open_options_menu(self):
+        self.options_dialog.show()
+
+    def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Openfile", "/", "MP3 (*.mp3)")
         if ".mp3" in file_type:
             self.song.set_song(file_name)
@@ -72,7 +103,7 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.music_position_label.setText(util.format_duration(position))
             self.music_control_box.duration_slider.setValue(position)
 
-    def player_state_changed(self, status):
+    def player_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia and self.music_control_box.repeat_button.repeating:
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
@@ -84,6 +115,16 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.stop_button.setIcon(QIcon(files.Images.STOPPED))
             self.music_control_box.play_button.setToolTip("Play")
             self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
+
+    def player_state_changed(self, state):
+        if state == QMediaPlayer.StoppedState:
+            self.set_drpc_activity("Stopped")
+        elif state == QMediaPlayer.PlayingState:
+            self.set_drpc_activity("Playing")
+        elif state == QMediaPlayer.PausedState:
+            self.set_drpc_activity("Paused")
+        else:
+            self.set_drpc_activity("Broken?")
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -101,7 +142,6 @@ class HQMediaPlayer(QMainWindow):
             pass
 
     def process_multi_keys(self, key_list):
-        print(key_list)
         if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
             if self.player.state() == QMediaPlayer.PlayingState:
@@ -124,11 +164,16 @@ class HQMediaPlayer(QMainWindow):
             del key_list[:]
 
     def closeEvent(self, event: QCloseEvent):
+        self.drpc.close()
         self.dbg_console.close()
 
     def create_connections(self):
+        self.drpc.start()
+        self.set_drpc_activity("Stopped")
+
+        self.player.stateChanged.connect(self.player_state_changed)
         self.player.positionChanged.connect(self.player_position_changed)
-        self.player.mediaStatusChanged.connect(self.player_state_changed)
+        self.player.mediaStatusChanged.connect(self.player_status_changed)
 
     def create_menubar(self):
         debug_console_action = QAction(self)
@@ -141,12 +186,20 @@ class HQMediaPlayer(QMainWindow):
         open_action.setText("Open")
         open_action.setIconText("Open")
         open_action.setFont(QFont("Consolas", 10))
-        open_action.triggered.connect(self.open_action_triggered)
+        open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(self.open_file)
+
+        options_action = QAction(self)
+        options_action.setText("Options")
+        options_action.setIconText("Options")
+        options_action.setFont(QFont("Consolas", 10))
+        options_action.triggered.connect(self.open_options_menu)
 
         file_menu = QMenu(self)
         file_menu.setTitle("File")
         file_menu.setFont(QFont("Consolas", 10))
         file_menu.addAction(open_action)
+        file_menu.addAction(options_action)
 
         help_menu = QMenu(self)
         help_menu.setTitle("Help")

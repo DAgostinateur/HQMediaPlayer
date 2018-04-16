@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtCore import Qt
 
@@ -7,6 +7,7 @@ from widgets import (volume_slider, mute_button, repeat_button,
                      music_position_label, duration_slider)
 
 import util
+import files
 
 
 # noinspection PyUnresolvedReferences
@@ -36,3 +37,19 @@ class MusicControlBox(QGroupBox):
     def reset_duration(self):
         self.music_position_label.reset_time()
         self.duration_slider.reset_slider()
+
+    def set_playing_state_buttons(self):
+        self.stop_button.setToolTip("Stop")
+        self.stop_button.setIcon(QIcon(files.Images.STOP))
+        self.pause_button.setToolTip("Pause")
+        self.pause_button.setIcon(QIcon(files.Images.PAUSE))
+
+    def set_stopped_state_buttons(self):
+        self.pause_button.setToolTip("Pause")
+        self.pause_button.setIcon(QIcon(files.Images.PAUSE))
+        self.play_button.setToolTip("Play")
+        self.play_button.setIcon(QIcon(files.Images.PLAY))
+
+    def set_paused_state_buttons(self):
+        self.play_button.setToolTip("Play")
+        self.play_button.setIcon(QIcon(files.Images.PLAY))

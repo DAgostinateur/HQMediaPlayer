@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QPushButton, QFileDialog
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtMultimedia import QMediaPlayer
 
@@ -7,7 +7,7 @@ import files
 import util
 
 
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyArgumentList
 class PlayButton(QPushButton):
     def __init__(self, parent=None):
         super(PlayButton, self).__init__(parent)
@@ -33,7 +33,12 @@ class PlayButton(QPushButton):
 
     def plb_clicked(self):
         if not self.mainwindow.song.has_song():
-            return
+            file_name, file_type = QFileDialog.getOpenFileName(self, "Openfile", "/", "MP3 (*.mp3)")
+            if ".mp3" in file_type:
+                self.mainwindow.song.set_song(file_name)
+                self.mainwindow.player.setMedia(self.mainwindow.song.content)
+            else:
+                return
 
         if self.mainwindow.player.state() == QMediaPlayer.PlayingState \
                 or self.mainwindow.player.state() == QMediaPlayer.StoppedState:
@@ -44,13 +49,8 @@ class PlayButton(QPushButton):
 
             self.mainwindow.music_info_box.set_song_info()
 
-            self.mainwindow.player.play()
-        elif self.mainwindow.player.state() == QMediaPlayer.PausedState:
-            self.mainwindow.player.play()
+        self.mainwindow.player.play()
 
-        self.music_control_box.stop_button.setToolTip("Stop")
-        self.music_control_box.stop_button.setIcon(QIcon(files.Images.STOP))
-        self.music_control_box.pause_button.setToolTip("Pause")
-        self.music_control_box.pause_button.setIcon(QIcon(files.Images.PAUSE))
+        self.music_control_box.set_playing_state_buttons()
         self.setToolTip("Playing")
         self.setIcon(QIcon(files.Images.PLAYING))

@@ -35,7 +35,6 @@ class PauseButton(QPushButton):
         if not self.mainwindow.player.state() == QMediaPlayer.StoppedState:
             self.mainwindow.player.pause()
 
-            self.music_control_box.play_button.setToolTip("Play")
-            self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
+            self.music_control_box.set_paused_state_buttons()
             self.setToolTip("Paused")
             self.setIcon(QIcon(files.Images.PAUSED))

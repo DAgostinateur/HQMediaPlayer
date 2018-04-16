@@ -16,7 +16,7 @@ class EmbeddedConsole(QWidget):
         self.setGeometry(50, 50, 480, 360)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Debug Console")
-        self.setWindowIcon(QIcon(files.Images.WPLAYER_LOGO))
+        self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
 
         self.console = QTextEdit(self)
         self.console.setGeometry(0, 0, 480, 360)
@@ -25,15 +25,14 @@ class EmbeddedConsole(QWidget):
         self.console.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.console.setReadOnly(True)
 
-    def write(self, msg):
+    def write(self, text):
         """Add msg to the console's output, on a new line.
            Also writes it to a file.
 
-        :param msg: String to output
+        :param text: String to output
         """
-
         with open(files.DEBUG_FILE, 'a') as f:
-            f.write("{0}\n{1}\n".format(msg, '-' * 10))
+            f.write("{0}\n{1}\n".format(text, '-' * 10))
 
-        self.console.insertPlainText(msg + '\n')
+        self.console.insertPlainText(text + '\n')
         self.console.moveCursor(QTextCursor.End)

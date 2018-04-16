@@ -19,8 +19,7 @@ class Images:
     STOP = "images\\stop.png"
     STOPPED = "images\\stopped.png"
 
-    WPLAYER_LOGO = "images\\wplayer.png"
-    PYTHON_LOGO = "images\\logo.png"
+    HQPLAYER_LOGO = "images\\hqplayer.png"
 
 
 TEMP_PNG_FILE = "temp_image.jpg"

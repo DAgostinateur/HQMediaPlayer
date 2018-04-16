@@ -34,12 +34,9 @@ class StopButton(QPushButton):
     def sb_clicked(self):
         self.mainwindow.player.stop()
         self.music_control_box.reset_duration()
-        self.mainwindow.music_info_box.reset_music_info()
         self.music_control_box.duration_slider.setDisabled(True)
+        # self.mainwindow.music_info_box.reset_music_info()
 
-        self.music_control_box.pause_button.setToolTip("Pause")
-        self.music_control_box.pause_button.setIcon(QIcon(files.Images.PAUSE))
-        self.music_control_box.play_button.setToolTip("Play")
-        self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
+        self.music_control_box.set_stopped_state_buttons()
         self.setToolTip("Stopped")
         self.setIcon(QIcon(files.Images.STOPPED))

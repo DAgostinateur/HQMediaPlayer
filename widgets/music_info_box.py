@@ -31,20 +31,20 @@ class MusicInfoBox(QGroupBox):
     def reset_music_info(self):
         self.timer.stop()
 
-        self.title_info.reset_line_edit_text()
-        self.artist_info.reset_line_edit_text()
-        self.length_info.reset_line_edit_text()
+        self.title_info.reset_label_text()
+        self.artist_info.reset_label_text()
+        self.length_info.reset_label_text()
         self.album_art_label.clear()
 
     def animate_info(self):
-        self.title_info.animate_cursor()
-        self.artist_info.animate_cursor()
-        self.length_info.animate_cursor()
+        self.title_info.animate_label_text()
+        self.artist_info.animate_label_text()
+        self.length_info.animate_label_text()
 
     def set_song_info(self):
-        self.title_info.set_line_edit_text(self.mainwindow.song.get_info(audio.WSong.TITLE))
-        self.artist_info.set_line_edit_text(self.mainwindow.song.get_info(audio.WSong.ARTIST))
-        self.length_info.set_line_edit_text(util.format_duration(self.mainwindow.song.get_real_duration()))
+        self.title_info.set_label_text(self.mainwindow.song.get_info(audio.WSong.TITLE))
+        self.artist_info.set_label_text(self.mainwindow.song.get_info(audio.WSong.ARTIST))
+        self.length_info.set_label_text(util.format_duration(self.mainwindow.song.get_real_duration()))
 
         if self.mainwindow.song.get_apic(True):
             self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))

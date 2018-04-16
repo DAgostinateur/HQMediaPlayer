@@ -29,14 +29,13 @@ class WSong:
         self.mp3 = mutagen.mp3.EasyMP3(file_location)
         self.content = QMediaContent(QUrl.fromLocalFile(file_location))
 
-
     def has_song(self):
         return not self.file_location is None
 
     def get_info(self, wanted_info: str = TITLE):
-        """
+        """Gets the desired metadata from the mp3 file.
 
-        :return: Returns the song's artist.
+        :return: Metadata in string form.
         """
         try:
             info = str(self.mp3[wanted_info])
@@ -77,14 +76,14 @@ class WSong:
     def get_real_duration(self):
         """
 
-        :return: Return the song's true duration in milliseconds.
+        :return: The song's true duration in milliseconds.
         """
         return int(self.mp3.info.length * 1000)
 
     def get_player_duration(self):
         """
 
-        :return: Return the song's duration for QMediaPlayer in milliseconds.
+        :return: The song's duration for QMediaPlayer in milliseconds.
         """
         # QMediaPlayer adds 202 milliseconds to the duration, no idea why.
         return self.get_real_duration() + 202
