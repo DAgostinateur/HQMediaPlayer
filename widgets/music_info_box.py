@@ -11,6 +11,8 @@ import files
 
 # noinspection PyUnresolvedReferences
 class MusicInfoBox(QGroupBox):
+    default_timer_interval = 200
+
     def __init__(self, parent=None):
         super(MusicInfoBox, self).__init__(parent)
         self.setGeometry(7, 17, 381, 155)
@@ -20,8 +22,10 @@ class MusicInfoBox(QGroupBox):
         self.length_info = animated_label.AnimatedLabel(self, 55, "Length :", False)
         self.album_art_label = album_art_label.AlbumArtLabel(self)
 
+        self.timer_interval = self.default_timer_interval
+
         self.timer = QTimer()
-        self.timer.setInterval(200)
+        self.timer.setInterval(self.timer_interval)
         self.timer.timeout.connect(self.animate_info)
 
     @property

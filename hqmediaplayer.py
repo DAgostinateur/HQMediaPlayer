@@ -1,17 +1,18 @@
 import ctypes
 import sys
 import pypresence.client
+import pypresence.exceptions
 
-import files
-import util
-import audio
-import options_dialog
-from widgets import music_control_box, music_info_box, embedded_console
-
-from PyQt5.QtMultimedia import QMediaPlayer, QAudio, QAudioDeviceInfo
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog
-from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
+from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog
+
+import audio
+import files
+import options_dialog
+import util
+from widgets import music_control_box, music_info_box, embedded_console
 
 
 # TODO:
@@ -37,6 +38,7 @@ class HQMediaPlayer(QMainWindow):
     # Is this supposed to be hidden?
     # There's no mention in pypresence or Discord documents to hide the application client id.
     drpc_client_id = '434146683245297684'
+
     def __init__(self, parent=None):
         super(HQMediaPlayer, self).__init__(parent)
         self.key_list = []
@@ -54,12 +56,14 @@ class HQMediaPlayer(QMainWindow):
         # drpc = Discord Rich Presence
         # The id that goes with it is the discord client id of the application
         self.drpc = pypresence.client.Client(self.drpc_client_id)
+        self.drpc_enabled = True
+
         self.song = audio.WSong()
         self.player = QMediaPlayer()
-        self.options_dialog = options_dialog.OptionsDialog()
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
+        self.options_dialog = options_dialog.OptionsDialog(self)
 
         self.create_menubar()
         self.create_connections()
@@ -117,14 +121,15 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.play_button.setIcon(QIcon(files.Images.PLAY))
 
     def player_state_changed(self, state):
-        if state == QMediaPlayer.StoppedState:
-            self.set_drpc_activity("Stopped")
-        elif state == QMediaPlayer.PlayingState:
-            self.set_drpc_activity("Playing")
-        elif state == QMediaPlayer.PausedState:
-            self.set_drpc_activity("Paused")
-        else:
-            self.set_drpc_activity("Broken?")
+        if self.drpc_enabled:
+            if state == QMediaPlayer.StoppedState:
+                self.set_drpc_activity("Stopped")
+            elif state == QMediaPlayer.PlayingState:
+                self.set_drpc_activity("Playing")
+            elif state == QMediaPlayer.PausedState:
+                self.set_drpc_activity("Paused")
+            else:
+                self.set_drpc_activity("Broken?")
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -164,12 +169,16 @@ class HQMediaPlayer(QMainWindow):
             del key_list[:]
 
     def closeEvent(self, event: QCloseEvent):
-        self.drpc.close()
+        if self.drpc_enabled:
+            self.drpc.close()
         self.dbg_console.close()
 
     def create_connections(self):
-        self.drpc.start()
-        self.set_drpc_activity("Stopped")
+        try:
+            self.drpc.start()
+            self.set_drpc_activity("Stopped")
+        except pypresence.exceptions.InvalidPipe:
+            self.drpc_enabled = False
 
         self.player.stateChanged.connect(self.player_state_changed)
         self.player.positionChanged.connect(self.player_position_changed)
