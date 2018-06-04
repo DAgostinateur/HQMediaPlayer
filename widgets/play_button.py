@@ -51,9 +51,7 @@ class PlayButton(QPushButton):
                 return
 
         if self.mainwindow.player.state() == QMediaPlayer.PlayingState:
-            if self.mainwindow.options.get_default_option(
-                    self.mainwindow.options.default_user_play_button_behaviour,
-                    self.mainwindow.options.default_app_play_button_behaviour) == \
+            if self.mainwindow.options.get_default_play_button() == \
                     options_dialog.OptionsDialog.behaviour_play_button_restart:
                 self.restart_player()
 

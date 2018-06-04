@@ -18,13 +18,9 @@ from widgets import music_control_box, music_info_box, embedded_console
 # TODO:
 # Create a Playlist class
 # Save music file location for quick loading
-# Make an options widgets with a bunch of options:
-#   - Being able to change output device
-#   - Change PlayButton behaviour between 'restarting song' and 'doing nothing'
-#   - Change how fast the text scrolls
-#
+# Being able to change output device
 # QtxGlobalShortcuts, look into that
-# Make a better looking UI
+# Maybe make a better looking UI
 # About Section
 
 
@@ -69,7 +65,7 @@ class HQMediaPlayer(QMainWindow):
         self.create_menubar()
         self.create_connections()
 
-        self.player.setVolume(self.music_control_box.volume_slider.default_volume)
+        self.player.setVolume(self.music_control_box.volume_slider.volume_at_start)
         # all_devices = ""
         # for d in QAudioDeviceInfo.availableDevices(QAudio.AudioOutput):
         #     all_devices += "{}\n".format(d.deviceName())
@@ -172,6 +168,8 @@ class HQMediaPlayer(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         if self.drpc_enabled:
             self.drpc.close()
+
+        self.options.save_user_defaults(self.music_control_box.volume_slider.value(), None, None)
         self.dbg_console.close()
         self.options_dialog.close()
 

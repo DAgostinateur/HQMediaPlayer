@@ -13,8 +13,8 @@ import json
 
 class Options(object):
     default_app_options_file = "./options.json"
-    default_app_timer_interval = 200
     default_app_volume = 25
+    default_app_timer_interval = 200
     default_app_play_button_behaviour = 1
 
     json_volume_name = "default_volume"
@@ -37,6 +37,15 @@ class Options(object):
         else:
             return user_option
 
+    def get_default_volume(self):
+        return self.get_default_option(self.default_user_volume, self.default_app_volume)
+
+    def get_default_timer_interval(self):
+        return self.get_default_option(self.default_user_timer_interval, self.default_app_timer_interval)
+
+    def get_default_play_button(self):
+        return self.get_default_option(self.default_user_play_button_behaviour, self.default_app_play_button_behaviour)
+
     def get_user_defaults(self):
         if not os.path.exists(self.default_app_options_file):
             return
@@ -57,10 +66,23 @@ class Options(object):
             print(self.default_user_play_button_behaviour)
 
     def save_user_defaults(self, volume, timer_interval, play_button_behaviour):
+        if volume is None:
+            volume = self.get_default_option(self.default_user_volume,
+                                             self.default_app_play_button_behaviour)
+        else:
+            self.default_user_volume = volume
 
-        self.default_user_volume = volume
-        self.default_user_timer_interval = timer_interval
-        self.default_user_play_button_behaviour = play_button_behaviour
+        if timer_interval is None:
+            timer_interval = self.get_default_option(self.default_user_timer_interval,
+                                                     self.default_app_timer_interval)
+        else:
+            self.default_user_timer_interval = timer_interval
+
+        if play_button_behaviour is None:
+            play_button_behaviour = self.get_default_option(self.default_user_play_button_behaviour,
+                                                            self.default_app_play_button_behaviour)
+        else:
+            self.default_user_play_button_behaviour = play_button_behaviour
 
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,
@@ -93,12 +115,8 @@ class OptionsDialog(QDialog):
         self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
         self.setWindowFlags(self.windowFlags() & (~Qt.WindowContextHelpButtonHint))
 
-        self.behaviour_play_button = self.mainwindow.options.get_default_option(
-            self.mainwindow.options.default_user_play_button_behaviour,
-            self.mainwindow.options.default_app_play_button_behaviour)
-        self.behaviour_scrolling_text_speed = self.mainwindow.options.get_default_option(
-            self.mainwindow.options.default_user_timer_interval,
-            self.mainwindow.options.default_app_timer_interval)
+        self.behaviour_play_button = self.mainwindow.options.get_default_play_button()
+        self.behaviour_scrolling_text_speed = self.mainwindow.options.get_default_timer_interval()
 
         self.behaviour_tab = QWidget()
         self.option_play_button = QGroupBox(self.behaviour_tab)
@@ -175,7 +193,8 @@ class OptionsDialog(QDialog):
         self.tab_widget.addTab(self.behaviour_tab, "Behaviour")
 
     def button_box_accepted(self):
-        self.mainwindow.options.save_user_defaults(25, self.behaviour_scrolling_text_speed, self.behaviour_play_button)
+        self.mainwindow.options.save_user_defaults(None, self.behaviour_scrolling_text_speed,
+                                                   self.behaviour_play_button)
         self.mainwindow.music_info_box.set_timer_interval()
         self.close()
 

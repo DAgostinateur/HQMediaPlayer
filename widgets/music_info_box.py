@@ -20,9 +20,7 @@ class MusicInfoBox(QGroupBox):
         self.length_info = animated_label.AnimatedLabel(self, 55, "Length :", False)
         self.album_art_label = album_art_label.AlbumArtLabel(self)
 
-        self.timer_interval = self.mainwindow.options.get_default_option(
-            self.mainwindow.options.default_user_timer_interval,
-            self.mainwindow.options.default_app_timer_interval)
+        self.timer_interval = self.mainwindow.options.get_default_timer_interval()
 
         self.timer = QTimer()
         self.timer.setInterval(self.timer_interval)
@@ -33,9 +31,7 @@ class MusicInfoBox(QGroupBox):
         return util.get_upper_parentwidget(self, 2)
 
     def set_timer_interval(self):
-        self.timer_interval = self.mainwindow.options.get_default_option(
-            self.mainwindow.options.default_user_timer_interval,
-            self.mainwindow.options.default_app_timer_interval)
+        self.timer_interval = self.mainwindow.options.get_default_timer_interval()
         self.timer.setInterval(self.timer_interval)
 
     def reset_music_info(self):

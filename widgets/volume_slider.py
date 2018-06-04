@@ -8,16 +8,18 @@ import util
 
 # noinspection PyUnresolvedReferences
 class VolumeSlider(QSlider):
-    default_volume = 25
-    volume_when_muted = default_volume
+    volume_at_start = None
+    volume_when_muted = volume_at_start
 
     def __init__(self, parent=None):
         super(VolumeSlider, self).__init__(parent)
 
+        self.volume_at_start = self.mainwindow.options.get_default_volume()
+
         self.setGeometry(180, 61, 100, 22)
-        self.setToolTip(str(self.default_volume))
+        self.setToolTip(str(self.volume_at_start))
         self.setMaximum(100)
-        self.setValue(self.default_volume)
+        self.setValue(self.volume_at_start)
         self.setOrientation(Qt.Horizontal)
         self.setFocusPolicy(Qt.ClickFocus)
 
