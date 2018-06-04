@@ -58,6 +58,7 @@ class HQMediaPlayer(QMainWindow):
         self.drpc = pypresence.client.Client(self.drpc_client_id)
         self.drpc_enabled = True
 
+        self.options = options_dialog.Options()
         self.song = audio.WSong()
         self.player = QMediaPlayer()
         self.dbg_console = embedded_console.EmbeddedConsole()
@@ -92,6 +93,7 @@ class HQMediaPlayer(QMainWindow):
                                    details="Listening to 'N/A'")
 
     def open_options_menu(self):
+        self.options_dialog.update_info_choices()
         self.options_dialog.show()
 
     def open_file(self):
@@ -112,7 +114,6 @@ class HQMediaPlayer(QMainWindow):
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
             self.music_control_box.reset_duration()
-            self.music_info_box.reset_music_info()
             self.music_control_box.duration_slider.setDisabled(True)
 
             self.music_control_box.stop_button.setToolTip("Stopped")
@@ -172,6 +173,7 @@ class HQMediaPlayer(QMainWindow):
         if self.drpc_enabled:
             self.drpc.close()
         self.dbg_console.close()
+        self.options_dialog.close()
 
     def create_connections(self):
         try:

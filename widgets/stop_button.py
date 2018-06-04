@@ -35,7 +35,7 @@ class StopButton(QPushButton):
         self.mainwindow.player.stop()
         self.music_control_box.reset_duration()
         self.music_control_box.duration_slider.setDisabled(True)
-        # self.mainwindow.music_info_box.reset_music_info()
+        self.mainwindow.music_info_box.reset_music_info()
 
         self.music_control_box.set_stopped_state_buttons()
         self.setToolTip("Stopped")
