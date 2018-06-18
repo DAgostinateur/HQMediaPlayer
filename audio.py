@@ -13,6 +13,12 @@ class InvalidFile(Exception):
     pass
 
 
+# class WPlaylist:
+#
+#     def __init__(self, paths : list):
+#         self.current_song = None
+
+
 # noinspection PyArgumentList
 class WSong:
     ARTIST = "artist"

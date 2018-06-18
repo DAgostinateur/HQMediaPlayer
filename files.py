@@ -5,8 +5,13 @@ class Images:
     VOLUME_LESS_100 = "images\\vol_less100.png"
     VOLUME_ERROR = "images\\vol_idk.png"
 
+    ADD = "images\\add.png"
+    REMOVE = "images\\remove.png"
+
     PLAY = "images\\play.png"
     PLAYING = "images\\playing.png"
+    HQPLAY = "images\\hqplay.png"
+    HQPLAYING = "images\\hqplaying.png"
 
     PAUSE = "images\\pause.png"
     PAUSED = "images\\paused.png"

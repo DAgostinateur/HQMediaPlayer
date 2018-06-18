@@ -18,6 +18,8 @@ class PlayButton(QPushButton):
         self.setIconSize(QSize(25, 25))
         self.setFocusPolicy(Qt.ClickFocus)
 
+        self.icon_status_hq = False
+
         self.released.connect(self.plb_released)
         self.clicked.connect(self.plb_clicked)
 
@@ -28,6 +30,25 @@ class PlayButton(QPushButton):
     @property
     def music_control_box(self):
         return self.parentWidget()
+
+    def set_playing_icon(self):
+        if self.icon_status_hq:
+            self.setIcon(QIcon(files.Images.HQPLAYING))
+        else:
+            self.setIcon(QIcon(files.Images.PLAYING))
+
+    def set_play_icon(self):
+        if self.icon_status_hq:
+            self.setIcon(QIcon(files.Images.HQPLAY))
+        else:
+            self.setIcon(QIcon(files.Images.PLAY))
+
+    def toggle_icon_status(self):
+        self.icon_status_hq = not self.icon_status_hq
+        if self.mainwindow.player.state() == QMediaPlayer.PlayingState:
+            self.set_playing_icon()
+        else:
+            self.set_play_icon()
 
     def plb_released(self):
         self.clearFocus()
@@ -68,4 +89,4 @@ class PlayButton(QPushButton):
 
         self.music_control_box.set_playing_state_buttons()
         self.setToolTip("Playing")
-        self.setIcon(QIcon(files.Images.PLAYING))
+        self.set_playing_icon()

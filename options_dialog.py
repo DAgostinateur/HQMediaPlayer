@@ -19,12 +19,14 @@ class Options(object):
 
     json_volume_name = "default_volume"
     json_timer_name = "default_timer_interval"
-    json_playbutton_name = "default_play_button_behaviour"
+    json_play_button_name = "default_play_button_behaviour"
+    json_music_folders_name = "music_folders"
 
     def __init__(self):
         self.default_user_volume = None
         self.default_user_timer_interval = None
         self.default_user_play_button_behaviour = None
+        self.user_music_folders = None
 
         self.json_user_defaults = None
 
@@ -58,14 +60,16 @@ class Options(object):
 
             self.default_user_volume = self.set_user_default(self.json_volume_name)
             self.default_user_timer_interval = self.set_user_default(self.json_timer_name)
-            self.default_user_play_button_behaviour = self.set_user_default(self.json_playbutton_name)
+            self.default_user_play_button_behaviour = self.set_user_default(self.json_play_button_name)
+            self.user_music_folders = self.set_user_default(self.json_music_folders_name)
 
             print("GET USER DEFAULTS")
             print(self.default_user_volume)
             print(self.default_user_timer_interval)
             print(self.default_user_play_button_behaviour)
+            print(self.user_music_folders)
 
-    def save_user_defaults(self, volume, timer_interval, play_button_behaviour):
+    def save_user_defaults(self, volume, timer_interval, play_button_behaviour, music_folder):
         if volume is None:
             volume = self.get_default_option(self.default_user_volume,
                                              self.default_app_play_button_behaviour)
@@ -84,9 +88,31 @@ class Options(object):
         else:
             self.default_user_play_button_behaviour = play_button_behaviour
 
+        if music_folder is not None:
+            if self.user_music_folders is None:
+                # list(self.user_music_folders).append(music_folder)
+                self.user_music_folders = [music_folder]
+            else:
+                self.user_music_folders.append(music_folder)
+
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,
-                      '{}'.format(self.json_playbutton_name): play_button_behaviour}
+                      '{}'.format(self.json_play_button_name): play_button_behaviour,
+                      self.json_music_folders_name: self.user_music_folders}
+        json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
+
+        with open(self.default_app_options_file, 'w') as file:
+            file.write(json_string)
+
+    def delete_music_folder(self, folder):
+        try:
+            self.user_music_folders.remove(folder)
+        except ValueError:
+            return
+        info_dicts = {'{}'.format(self.json_volume_name): self.default_user_volume,
+                      '{}'.format(self.json_timer_name): self.default_user_timer_interval,
+                      '{}'.format(self.json_play_button_name): self.default_user_play_button_behaviour,
+                      self.json_music_folders_name: self.user_music_folders}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -99,7 +125,7 @@ class Options(object):
             return None
 
 
-# noinspection PyUnresolvedReferences,PyArgumentList
+# noinspection PyUnresolvedReferences,PyArgumentList,PyAttributeOutsideInit
 class OptionsDialog(QDialog):
     behaviour_play_button_restart = 1
     behaviour_play_button_nothing = 2
@@ -194,7 +220,7 @@ class OptionsDialog(QDialog):
 
     def button_box_accepted(self):
         self.mainwindow.options.save_user_defaults(None, self.behaviour_scrolling_text_speed,
-                                                   self.behaviour_play_button)
+                                                   self.behaviour_play_button, None)
         self.mainwindow.music_info_box.set_timer_interval()
         self.close()
 

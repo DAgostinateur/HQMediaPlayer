@@ -11,8 +11,8 @@ class EmbeddedConsole(QWidget):
                           "background-color: #000; border-color: #DDD;"
                           "color: #C8C8C8; font-size: 13px; font-family: Consolas;}")
 
-    def __init__(self, parent=None):
-        super(EmbeddedConsole, self).__init__(parent)
+    def __init__(self):
+        super(EmbeddedConsole, self).__init__(None)
         self.setGeometry(50, 50, 480, 360)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Debug Console")

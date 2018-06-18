@@ -48,8 +48,14 @@ class MusicControlBox(QGroupBox):
         self.pause_button.setToolTip("Pause")
         self.pause_button.setIcon(QIcon(files.Images.PAUSE))
         self.play_button.setToolTip("Play")
-        self.play_button.setIcon(QIcon(files.Images.PLAY))
+        self.play_button.set_play_icon()
 
     def set_paused_state_buttons(self):
         self.play_button.setToolTip("Play")
-        self.play_button.setIcon(QIcon(files.Images.PLAY))
+        self.play_button.set_play_icon()
+
+    def set_end_of_media_buttons(self):
+        self.stop_button.setToolTip("Stopped")
+        self.stop_button.setIcon(QIcon(files.Images.STOPPED))
+        self.play_button.setToolTip("Play")
+        self.play_button.set_play_icon()
