@@ -26,7 +26,7 @@ from widgets import music_control_box, music_info_box, embedded_console, folders
 
 # Fixes the TaskBar Icon bug
 # https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7/1552105#1552105
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("dagostinateur_woh.hqmediaplayer.v1")
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("dagostinateur_woh.hqmediaplayer")
 
 
 # noinspection PyCallByClass,PyArgumentList,PyUnresolvedReferences
@@ -108,6 +108,8 @@ class HQMediaPlayer(QMainWindow):
     def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Open File", "/", "MP3 (*.mp3)")
         if ".mp3" in file_type:
+            self.playlist.clear()
+            self.has_playlist = False
             self.song.set_song(file_name)
             self.player.setMedia(self.song.content)
             self.music_control_box.stop_button.sb_clicked()
@@ -137,6 +139,7 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.duration_slider.setMaximum(self.song.get_player_duration())
             self.music_info_box.set_song_info()
 
+            self.set_drpc_activity("Playing")
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
             self.music_control_box.reset_duration()
@@ -184,12 +187,14 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.volume_slider.decrease_volume(5)
         elif util.check_keys(key_list, [Qt.Key_MediaStop]):
             self.music_control_box.stop_button.sb_clicked()
-        elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
-            self.music_control_box.play_button.plb_clicked()
-        elif util.check_keys(key_list, [Qt.Key_MediaPause]):
-            self.music_control_box.pause_button.pb_clicked()
+        # elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
+        #     self.music_control_box.play_button.plb_clicked()
+        # elif util.check_keys(key_list, [Qt.Key_MediaPause]):
+        #     self.music_control_box.pause_button.pb_clicked()
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
+
+        print(key_list)
 
         if any(key_list.count(x) > 1 for x in key_list):
             del key_list[:]

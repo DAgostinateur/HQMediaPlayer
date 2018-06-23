@@ -63,17 +63,15 @@ class PlayButton(QPushButton):
         self.mainwindow.player.play()
 
     def plb_clicked(self):
-        if not self.mainwindow.song.has_song() or not self.mainwindow.has_playlist:
+        if not self.mainwindow.song.has_song() and not self.mainwindow.has_playlist:
             return
 
         if self.mainwindow.player.state() == QMediaPlayer.PlayingState:
             if self.mainwindow.options.get_default_play_button() == \
                     options_dialog.OptionsDialog.behaviour_play_button_restart:
                 self.restart_player()
-
         elif self.mainwindow.player.state() == QMediaPlayer.StoppedState:
             self.restart_player()
-
         elif self.mainwindow.player.state() == QMediaPlayer.PausedState:
             self.mainwindow.player.play()
 
