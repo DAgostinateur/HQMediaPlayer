@@ -1,11 +1,12 @@
 import ctypes
+import os
 import sys
 import pypresence.client
 import pypresence.exceptions
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QUrl
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
-from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog
 
 import audio
@@ -53,8 +54,11 @@ class HQMediaPlayer(QMainWindow):
         self.drpc = pypresence.client.Client(self.drpc_client_id)
         self.drpc_enabled = True
 
+        self.has_playlist = False
+
         self.options = options_dialog.Options()
         self.song = audio.WSong()
+        self.playlist = audio.WPlaylist(self)
         self.player = QMediaPlayer()
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
@@ -88,9 +92,18 @@ class HQMediaPlayer(QMainWindow):
     def open_about(self):
         pass
 
-    def open_options_menu(self):
-        self.options_dialog.update_info_choices()
-        self.options_dialog.show()
+    def start_playlist(self):
+        self.playlist.clear()
+        self.has_playlist = False
+        if len(self.options.user_music_folders) == 0:
+            return
+
+        self.playlist.set_playlist_files()
+        self.playlist.shuffle()
+        self.player.setPlaylist(self.playlist)
+        self.song.set_song(self.playlist.get_current_song())
+
+        self.has_playlist = True
 
     def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Open File", "/", "MP3 (*.mp3)")
@@ -104,6 +117,10 @@ class HQMediaPlayer(QMainWindow):
         self.fol_man.refresh_list()
         self.fol_man.show()
 
+    def open_options_menu(self):
+        self.options_dialog.update_info_choices()
+        self.options_dialog.show()
+
     def player_position_changed(self, position):
         if not self.player.state() == QMediaPlayer.StoppedState:
             self.music_control_box.music_position_label.setText(util.format_duration(position))
@@ -111,6 +128,15 @@ class HQMediaPlayer(QMainWindow):
 
     def player_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia and self.music_control_box.repeat_button.repeating:
+            self.player.play()
+        elif status == QMediaPlayer.EndOfMedia and self.has_playlist:
+            self.playlist.setCurrentIndex(self.playlist.currentIndex() + 1)
+            self.song.set_song(self.playlist.get_current_song())
+
+            self.music_control_box.reset_duration()
+            self.music_control_box.duration_slider.setMaximum(self.song.get_player_duration())
+            self.music_info_box.set_song_info()
+
             self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
             self.music_control_box.reset_duration()
@@ -195,6 +221,13 @@ class HQMediaPlayer(QMainWindow):
         debug_console_action.setFont(QFont("Consolas", 10))
         debug_console_action.triggered.connect(self.debug_console_action_triggered)
 
+        start_playlist_action = QAction(self)
+        start_playlist_action.setText("Start Playlist")
+        start_playlist_action.setIconText("Start Playlist")
+        start_playlist_action.setFont(QFont("Consolas", 10))
+        start_playlist_action.setShortcut("Ctrl+P")
+        start_playlist_action.triggered.connect(self.start_playlist)
+
         open_file_action = QAction(self)
         open_file_action.setText("Open File")
         open_file_action.setIconText("Open File")
@@ -202,11 +235,11 @@ class HQMediaPlayer(QMainWindow):
         open_file_action.setShortcut("Ctrl+O")
         open_file_action.triggered.connect(self.open_file)
 
-        open_files_action = QAction(self)
-        open_files_action.setText("Folders Manager")
-        open_files_action.setIconText("Folders Manager")
-        open_files_action.setFont(QFont("Consolas", 10))
-        open_files_action.triggered.connect(self.open_folders_manager)
+        folder_manager_action = QAction(self)
+        folder_manager_action.setText("Folders Manager")
+        folder_manager_action.setIconText("Folders Manager")
+        folder_manager_action.setFont(QFont("Consolas", 10))
+        folder_manager_action.triggered.connect(self.open_folders_manager)
 
         options_action = QAction(self)
         options_action.setText("Options")
@@ -223,8 +256,9 @@ class HQMediaPlayer(QMainWindow):
         file_menu = QMenu(self)
         file_menu.setTitle("File")
         file_menu.setFont(QFont("Consolas", 10))
+        file_menu.addAction(start_playlist_action)
         file_menu.addAction(open_file_action)
-        file_menu.addAction(open_files_action)
+        file_menu.addAction(folder_manager_action)
         file_menu.addAction(options_action)
 
         help_menu = QMenu(self)

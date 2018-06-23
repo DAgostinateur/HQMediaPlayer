@@ -1,22 +1,32 @@
 from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaContent
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlaylist
 import mutagen.mp3
 import os
 import files
 
 
 def is_music_file(file: str):
-    return os.path.isfile(file) and file.lower().endswith(('.mp3', '.wav'))
+    return os.path.isfile(file) and file.lower().endswith(('.mp3'))
 
 
 class InvalidFile(Exception):
     pass
 
 
-# class WPlaylist:
-#
-#     def __init__(self, paths : list):
-#         self.current_song = None
+class WPlaylist(QMediaPlaylist):
+    def __init__(self, parent=None):
+        super(WPlaylist, self).__init__(None)
+
+        self.mainwindow = parent
+
+    def get_current_song(self):
+        return self.currentMedia().canonicalUrl().path()[1:]
+
+    def set_playlist_files(self):
+        for folder in self.mainwindow.options.user_music_folders:
+            for file in os.listdir(folder):
+                if is_music_file(os.path.join(folder, file)):
+                    self.addMedia(QMediaContent(QUrl.fromLocalFile(os.path.join(folder, file))))
 
 
 # noinspection PyArgumentList
