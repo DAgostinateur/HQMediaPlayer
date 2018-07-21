@@ -32,7 +32,7 @@ class EmbeddedConsole(QWidget):
         :param text: String to output
         """
         with open(files.DEBUG_FILE, 'a') as f:
-            f.write("{0}\n{1}\n".format(text, '-' * 10))
+            f.write("{0}\n".format(text))
 
         self.console.insertPlainText(text + '\n')
         self.console.moveCursor(QTextCursor.End)

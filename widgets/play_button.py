@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QPushButton, QFileDialog
+from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtMultimedia import QMediaPlayer
 

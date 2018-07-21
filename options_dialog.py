@@ -63,12 +63,6 @@ class Options(object):
             self.default_user_play_button_behaviour = self.set_user_default(self.json_play_button_name)
             self.user_music_folders = self.set_user_default(self.json_music_folders_name)
 
-            print("GET USER DEFAULTS")
-            print(self.default_user_volume)
-            print(self.default_user_timer_interval)
-            print(self.default_user_play_button_behaviour)
-            print(self.user_music_folders)
-
     def save_user_defaults(self, volume, timer_interval, play_button_behaviour, music_folder):
         if volume is None:
             volume = self.get_default_option(self.default_user_volume,

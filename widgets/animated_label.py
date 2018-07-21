@@ -20,7 +20,7 @@ class AnimatedLabel(QWidget):
 
     def animate_label_text(self):
         """Animates the text by moving the text to the left once"""
-        if self.animate_option and self.original_text_pixel_width > 170:
+        if self.animate_option and self.original_text_pixel_width > 160:
             self.label.setText((self.label.text()[1:] + self.label.text()[:1]))
 
     def set_label_text(self, text):
@@ -29,7 +29,7 @@ class AnimatedLabel(QWidget):
         self.setToolTip(text)
 
         self.original_text_pixel_width = self.label.fontMetrics().boundingRect(self.label.text()).width()
-        if self.original_text_pixel_width > 170:
+        if self.original_text_pixel_width > 160:
             self.label.setText("{}      ".format(text))
 
     def reset_label_text(self):

@@ -14,7 +14,7 @@ class MuteButton(QPushButton):
 
         self.setGeometry(180, 90, 25, 25)
         self.setToolTip("Mute")
-        self.setIcon(QIcon(files.Images.VOLUME_LESS_33))
+        self.setIcon(self.music_control_box.volume_slider.get_volume_icon())
         self.setIconSize(QSize(25, 25))
         self.setFocusPolicy(Qt.ClickFocus)
 

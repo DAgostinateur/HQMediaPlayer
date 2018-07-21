@@ -1,12 +1,11 @@
 import ctypes
-import os
 import sys
+
 import pypresence.client
 import pypresence.exceptions
-
-from PyQt5.QtCore import Qt, QSize, QUrl
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtMultimedia import QMediaPlayer, QAudioDeviceInfo, QAudio
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QAction, QWidget, QFileDialog
 
 import audio
@@ -17,11 +16,22 @@ from widgets import music_control_box, music_info_box, embedded_console, folders
 
 
 # TODO:
-# Create a Playlist class
-# Save music file location for quick loading
+# Songs playing longer than they should? Or is the duration slider wrong?
+# Look into "directshowplayerservice::dorender: unresolved error code 0x80040266"
+#   It's a .mp3 metadata problem. Versions of ID3 cause the issues.
+#   Found the bug:
+#       https://bugreports.qt.io/browse/QTBUG-42286
+#   Fix:
+#       Change ID3 Tags to ID3v2.3 ISO-8859-1
+#       ID3v2.3 UTF-16 and UTF-8 were causing problems
+#
+# Clean Playlist feature
+# Next and Back button
+# When AnimatedLabel's text is at it's original form, give it a 1.5 second delay.
 # Being able to change output device
 # QtxGlobalShortcuts, look into that
 # About Section
+# Clean the Menubar code
 
 
 # Fixes the TaskBar Icon bug
@@ -59,7 +69,7 @@ class HQMediaPlayer(QMainWindow):
         self.options = options_dialog.Options()
         self.song = audio.WSong()
         self.playlist = audio.WPlaylist(self)
-        self.player = QMediaPlayer()
+        self.player = QMediaPlayer(self)
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
@@ -71,23 +81,30 @@ class HQMediaPlayer(QMainWindow):
 
         self.player.setVolume(self.music_control_box.volume_slider.volume_at_start)
         # all_devices = ""
+        # test = QAudioDeviceInfo.availableDevices(QAudio.AudioOutput)[0]
+        #
         # for d in QAudioDeviceInfo.availableDevices(QAudio.AudioOutput):
+        #
         #     all_devices += "{}\n".format(d.deviceName())
+        #     print(d.supportedCodecs())
         # else:
-        #     self.dbg_console.write(all_devices)
+        #     print(all_devices)
 
     def debug_console_action_triggered(self):
         self.dbg_console.show()
 
     def set_drpc_activity(self, state):
-        if self.song.has_song():
-            self.drpc.set_activity(large_image="app_logo",
-                                   state="Player {}".format(state),
-                                   details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
-        else:
-            self.drpc.set_activity(large_image="app_logo",
-                                   state="Player {}".format(state),
-                                   details="Listening to 'N/A'")
+        try:
+            if self.song.has_song():
+                self.drpc.set_activity(large_image="app_logo",
+                                       state="Player {}".format(state),
+                                       details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
+            else:
+                self.drpc.set_activity(large_image="app_logo",
+                                       state="Player {}".format(state),
+                                       details="Listening to 'N/A'")
+        except pypresence.exceptions.InvalidID:
+            pass
 
     def open_about(self):
         pass
@@ -140,7 +157,6 @@ class HQMediaPlayer(QMainWindow):
             self.music_info_box.set_song_info()
 
             self.set_drpc_activity("Playing")
-            self.player.play()
         elif status == QMediaPlayer.EndOfMedia:
             self.music_control_box.reset_duration()
             self.music_control_box.duration_slider.setDisabled(True)
@@ -194,7 +210,7 @@ class HQMediaPlayer(QMainWindow):
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
 
-        print(key_list)
+        self.dbg_console.write(key_list)
 
         if any(key_list.count(x) > 1 for x in key_list):
             del key_list[:]

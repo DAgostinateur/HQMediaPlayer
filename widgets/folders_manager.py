@@ -48,17 +48,18 @@ class FoldersManager(QWidget):
         self.remove_button.released.connect(self.rm_released)
         self.remove_button.clicked.connect(self.rm_clicked)
 
-    def removeSel(self):
-        listItems = self.folder_list.selectedItems()
-        if not listItems:
+    def remove_sel(self):
+        list_items = self.folder_list.selectedItems()
+        if not list_items:
             return
-        for item in listItems:
+        for item in list_items:
             self.folder_list.takeItem(self.folder_list.row(item))
 
     def refresh_list(self):
         self.folder_list.clear()
-        for folder in self.mainwindow.options.user_music_folders:
-            self.folder_list.addItem(folder)
+        if self.mainwindow.options.user_music_folders is not None:
+            for folder in self.mainwindow.options.user_music_folders:
+                self.folder_list.addItem(folder)
         self.folder_list.sortItems()
 
     def get_selected_item(self):
@@ -80,4 +81,4 @@ class FoldersManager(QWidget):
     def rm_clicked(self):
         if len(self.folder_list.selectedItems()) != 0:
             self.mainwindow.options.delete_music_folder(self.get_selected_item())
-            self.removeSel()
+            self.remove_sel()

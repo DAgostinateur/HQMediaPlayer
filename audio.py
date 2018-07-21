@@ -6,13 +6,14 @@ import files
 
 
 def is_music_file(file: str):
-    return os.path.isfile(file) and file.lower().endswith(('.mp3'))
+    return os.path.isfile(file) and file.lower().endswith('.mp3')
 
 
 class InvalidFile(Exception):
     pass
 
 
+# noinspection PyArgumentList
 class WPlaylist(QMediaPlaylist):
     def __init__(self, parent=None):
         super(WPlaylist, self).__init__(None)
