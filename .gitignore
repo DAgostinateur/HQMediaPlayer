@@ -13,6 +13,7 @@
 *.lnk
 .idea/vcs.xml
 debug_file.txt
-debug_file.txt
-options.json
 .idea/discord.xml
+options.json
+debug_file.txt
+debug_file.txt

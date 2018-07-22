@@ -34,5 +34,5 @@ class EmbeddedConsole(QWidget):
         with open(files.DEBUG_FILE, 'a') as f:
             f.write("{0}\n".format(text))
 
-        self.console.insertPlainText(text + '\n')
+        self.console.insertPlainText("{0}\n".format(text))
         self.console.moveCursor(QTextCursor.End)
