@@ -31,6 +31,7 @@ from widgets import music_control_box, music_info_box, embedded_console, folders
 # Being able to change output device
 # QtxGlobalShortcuts, look into that
 # About Section
+# Add info on README.md
 # Clean the Menubar code
 
 
@@ -62,7 +63,7 @@ class HQMediaPlayer(QMainWindow):
         # drpc = Discord Rich Presence
         # The id that goes with it is the discord client id of the application
         self.drpc = pypresence.client.Client(self.drpc_client_id)
-        self.drpc_enabled = True
+        self.drpc_enabled = False
 
         self.has_playlist = False
 
@@ -94,17 +95,29 @@ class HQMediaPlayer(QMainWindow):
         self.dbg_console.show()
 
     def set_drpc_activity(self, state):
-        try:
-            if self.song.has_song():
-                self.drpc.set_activity(large_image="app_logo",
-                                       state="Player {}".format(state),
-                                       details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
-            else:
-                self.drpc.set_activity(large_image="app_logo",
-                                       state="Player {}".format(state),
-                                       details="Listening to 'N/A'")
-        except pypresence.exceptions.InvalidID:
-            pass
+        if self.drpc_enabled:
+            try:
+                if self.song.has_song():
+                    self.drpc.set_activity(large_image="app_logo",
+                                           state="Player {}".format(state),
+                                           details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
+                else:
+                    self.drpc.set_activity(large_image="app_logo",
+                                           state="Player {}".format(state),
+                                           details="Listening to 'N/A'")
+            except pypresence.exceptions.InvalidID:
+                self.drpc_enabled = False
+                self.drpc.close()
+
+    def restart_drpc(self):
+        if not self.drpc_enabled:
+            try:
+                self.drpc_enabled = True
+                self.drpc = pypresence.client.Client(self.drpc_client_id)
+                self.drpc.start()
+                self.player_state_changed(self.player.state())
+            except pypresence.exceptions.InvalidPipe:
+                self.drpc_enabled = False
 
     def open_about(self):
         pass
@@ -164,15 +177,14 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.set_end_of_media_buttons()
 
     def player_state_changed(self, state):
-        if self.drpc_enabled:
-            if state == QMediaPlayer.StoppedState:
-                self.set_drpc_activity("Stopped")
-            elif state == QMediaPlayer.PlayingState:
-                self.set_drpc_activity("Playing")
-            elif state == QMediaPlayer.PausedState:
-                self.set_drpc_activity("Paused")
-            else:
-                self.set_drpc_activity("Broken?")
+        if state == QMediaPlayer.StoppedState:
+            self.set_drpc_activity("Stopped")
+        elif state == QMediaPlayer.PlayingState:
+            self.set_drpc_activity("Playing")
+        elif state == QMediaPlayer.PausedState:
+            self.set_drpc_activity("Paused")
+        else:
+            self.set_drpc_activity("Broken?")
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -210,7 +222,7 @@ class HQMediaPlayer(QMainWindow):
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
 
-        self.dbg_console.write(key_list)
+        # self.dbg_console.write(key_list)
 
         if any(key_list.count(x) > 1 for x in key_list):
             del key_list[:]
@@ -226,6 +238,7 @@ class HQMediaPlayer(QMainWindow):
 
     def create_connections(self):
         try:
+            self.drpc_enabled = True
             self.drpc.start()
             self.set_drpc_activity("Stopped")
         except pypresence.exceptions.InvalidPipe:
@@ -268,6 +281,12 @@ class HQMediaPlayer(QMainWindow):
         options_action.setFont(QFont("Consolas", 10))
         options_action.triggered.connect(self.open_options_menu)
 
+        restart_drpc_action = QAction(self)
+        restart_drpc_action.setText("Restart Discord rich presence")
+        restart_drpc_action.setIconText("Restart Discord rich presence")
+        restart_drpc_action.setFont(QFont("Consolas", 10))
+        restart_drpc_action.triggered.connect(self.restart_drpc)
+
         about_action = QAction(self)
         about_action.setText("About")
         about_action.setIconText("About")
@@ -286,6 +305,7 @@ class HQMediaPlayer(QMainWindow):
         help_menu.setTitle("Help")
         help_menu.setFont(QFont("Consolas", 10))
         help_menu.addAction(debug_console_action)
+        help_menu.addAction(restart_drpc_action)
         help_menu.addAction(about_action)
 
         menubar = self.menuBar()
