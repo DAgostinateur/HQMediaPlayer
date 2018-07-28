@@ -39,13 +39,13 @@ class DurationSlider(QSlider):
         return self.parentWidget()
 
     def ds_slider_moved(self, value):
-        self.mainwindow.player.setPosition(value)
+        self.music_control_box.player.setPosition(value)
 
     def ds_slider_pressed(self):
-        self.mainwindow.player.setMuted(True)
+        self.music_control_box.player.setMuted(True)
 
     def ds_slider_released(self):
-        self.mainwindow.player.setMuted(False)
+        self.music_control_box.player.setMuted(False)
         self.clearFocus()
 
     def reset_slider(self):

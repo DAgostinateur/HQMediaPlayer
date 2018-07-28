@@ -32,7 +32,7 @@ class StopButton(QPushButton):
         self.clearFocus()
 
     def sb_clicked(self):
-        self.mainwindow.player.stop()
+        self.music_control_box.player.stop()
         self.music_control_box.reset_duration()
         self.music_control_box.duration_slider.setDisabled(True)
         self.mainwindow.music_info_box.reset_music_info()

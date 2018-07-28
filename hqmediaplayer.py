@@ -70,7 +70,6 @@ class HQMediaPlayer(QMainWindow):
         self.options = options_dialog.Options()
         self.song = audio.WSong()
         self.playlist = audio.WPlaylist(self)
-        self.player = QMediaPlayer(self)
         self.dbg_console = embedded_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
@@ -80,7 +79,6 @@ class HQMediaPlayer(QMainWindow):
         self.create_menubar()
         self.create_connections()
 
-        self.player.setVolume(self.music_control_box.volume_slider.volume_at_start)
         # all_devices = ""
         # test = QAudioDeviceInfo.availableDevices(QAudio.AudioOutput)[0]
         #
@@ -115,7 +113,7 @@ class HQMediaPlayer(QMainWindow):
                 self.drpc_enabled = True
                 self.drpc = pypresence.client.Client(self.drpc_client_id)
                 self.drpc.start()
-                self.player_state_changed(self.player.state())
+                self.music_control_box.player.state_changed(self.music_control_box.player.state())
             except pypresence.exceptions.InvalidPipe:
                 self.drpc_enabled = False
 
@@ -130,7 +128,7 @@ class HQMediaPlayer(QMainWindow):
 
         self.playlist.set_playlist_files()
         self.playlist.shuffle()
-        self.player.setPlaylist(self.playlist)
+        self.music_control_box.player.setPlaylist(self.playlist)
         self.song.set_song(self.playlist.get_current_song())
 
         self.has_playlist = True
@@ -141,7 +139,7 @@ class HQMediaPlayer(QMainWindow):
             self.playlist.clear()
             self.has_playlist = False
             self.song.set_song(file_name)
-            self.player.setMedia(self.song.content)
+            self.music_control_box.player.setMedia(self.song.content)
             self.music_control_box.stop_button.sb_clicked()
             self.music_control_box.play_button.plb_clicked()
 
@@ -152,39 +150,6 @@ class HQMediaPlayer(QMainWindow):
     def open_options_menu(self):
         self.options_dialog.update_info_choices()
         self.options_dialog.show()
-
-    def player_position_changed(self, position):
-        if not self.player.state() == QMediaPlayer.StoppedState:
-            self.music_control_box.music_position_label.setText(util.format_duration(position))
-            self.music_control_box.duration_slider.setValue(position)
-
-    def player_status_changed(self, status):
-        if status == QMediaPlayer.EndOfMedia and self.music_control_box.repeat_button.repeating:
-            self.player.play()
-        elif status == QMediaPlayer.EndOfMedia and self.has_playlist:
-            self.playlist.setCurrentIndex(self.playlist.currentIndex() + 1)
-            self.song.set_song(self.playlist.get_current_song())
-
-            self.music_control_box.reset_duration()
-            self.music_control_box.duration_slider.setMaximum(self.song.get_player_duration())
-            self.music_info_box.set_song_info()
-
-            self.set_drpc_activity("Playing")
-        elif status == QMediaPlayer.EndOfMedia:
-            self.music_control_box.reset_duration()
-            self.music_control_box.duration_slider.setDisabled(True)
-
-            self.music_control_box.set_end_of_media_buttons()
-
-    def player_state_changed(self, state):
-        if state == QMediaPlayer.StoppedState:
-            self.set_drpc_activity("Stopped")
-        elif state == QMediaPlayer.PlayingState:
-            self.set_drpc_activity("Playing")
-        elif state == QMediaPlayer.PausedState:
-            self.set_drpc_activity("Paused")
-        else:
-            self.set_drpc_activity("Broken?")
 
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
@@ -204,9 +169,10 @@ class HQMediaPlayer(QMainWindow):
     def process_multi_keys(self, key_list):
         if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
-            if self.player.state() == QMediaPlayer.PlayingState:
+            if self.music_control_box.player.state() == QMediaPlayer.PlayingState:
                 self.music_control_box.pause_button.pb_clicked()
-            elif self.player.state() == QMediaPlayer.PausedState or self.player.state() == QMediaPlayer.StoppedState:
+            elif self.music_control_box.player.state() == QMediaPlayer.PausedState or \
+                    self.music_control_box.player.state() == QMediaPlayer.StoppedState:
                 self.music_control_box.play_button.plb_clicked()
 
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Up]):
@@ -221,6 +187,10 @@ class HQMediaPlayer(QMainWindow):
         #     self.music_control_box.pause_button.pb_clicked()
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
+        elif util.check_keys(key_list, [Qt.Key_MediaNext]):
+            pass
+        elif util.check_keys(key_list, [Qt.Key_MediaPrevious]):
+            pass
 
         # self.dbg_console.write(key_list)
 
@@ -243,10 +213,6 @@ class HQMediaPlayer(QMainWindow):
             self.set_drpc_activity("Stopped")
         except pypresence.exceptions.InvalidPipe:
             self.drpc_enabled = False
-
-        self.player.stateChanged.connect(self.player_state_changed)
-        self.player.positionChanged.connect(self.player_position_changed)
-        self.player.mediaStatusChanged.connect(self.player_status_changed)
 
     def create_menubar(self):
         debug_console_action = QAction(self)

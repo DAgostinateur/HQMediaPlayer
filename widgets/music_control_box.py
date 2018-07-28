@@ -8,6 +8,7 @@ from widgets import (volume_slider, mute_button, repeat_button,
 
 import util
 import files
+from audio import WMediaPlayer
 
 
 # noinspection PyUnresolvedReferences
@@ -29,6 +30,9 @@ class MusicControlBox(QGroupBox):
         self.play_button = play_button.PlayButton(self)
 
         self.music_position_label = music_position_label.MusicPositionLabel(self)
+
+        self.player = WMediaPlayer(self)
+        self.player.setVolume(self.volume_slider.volume_at_start)
 
     @property
     def mainwindow(self):

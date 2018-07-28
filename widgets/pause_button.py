@@ -32,8 +32,8 @@ class PauseButton(QPushButton):
         self.clearFocus()
 
     def pb_clicked(self):
-        if not self.mainwindow.player.state() == QMediaPlayer.StoppedState:
-            self.mainwindow.player.pause()
+        if not self.music_control_box.player.state() == QMediaPlayer.StoppedState:
+            self.music_control_box.player.pause()
 
             self.music_control_box.set_paused_state_buttons()
             self.setToolTip("Paused")

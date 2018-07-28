@@ -1,8 +1,11 @@
 from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlaylist
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlaylist, QMediaPlayer
+
 import mutagen.mp3
 import os
+
 import files
+import util
 
 
 def is_music_file(file: str):
@@ -11,6 +14,57 @@ def is_music_file(file: str):
 
 class InvalidFile(Exception):
     pass
+
+
+class WMediaPlayer(QMediaPlayer):
+    def __init__(self, parent=None):
+        super(WMediaPlayer, self).__init__(parent)
+        self.mainwindow = parent.mainwindow
+
+        self.stateChanged.connect(self.state_changed)
+        self.positionChanged.connect(self.position_changed)
+        self.mediaStatusChanged.connect(self.media_status_changed)
+
+    # @property
+    # def mainwindow(self):
+    #     return util.get_upper_parentwidget(self, 3)
+
+    # @property
+    # def music_control_box(self):
+    #     return self.parentWidget()
+
+    def state_changed(self, state):
+        if state == QMediaPlayer.StoppedState:
+            self.mainwindow.set_drpc_activity("Stopped")
+        elif state == QMediaPlayer.PlayingState:
+            self.mainwindow.set_drpc_activity("Playing")
+        elif state == QMediaPlayer.PausedState:
+            self.mainwindow.set_drpc_activity("Paused")
+        else:
+            self.mainwindow.set_drpc_activity("Broken?")
+
+    def position_changed(self, position):
+        if not self.state() == QMediaPlayer.StoppedState:
+            self.mainwindow.music_control_box.music_position_label.setText(util.format_duration(position))
+            self.mainwindow.music_control_box.duration_slider.setValue(position)
+
+    def media_status_changed(self, status):
+        if status == QMediaPlayer.EndOfMedia and self.mainwindow.music_control_box.repeat_button.repeating:
+            self.player.play()
+        elif status == QMediaPlayer.EndOfMedia and self.mainwindow.has_playlist:
+            self.mainwindow.playlist.setCurrentIndex(self.mainwindow.playlist.currentIndex() + 1)
+            self.mainwindow.song.set_song(self.mainwindow.playlist.get_current_song())
+
+            self.mainwindow.music_control_box.reset_duration()
+            self.mainwindow.music_control_box.duration_slider.setMaximum(self.mainwindow.song.get_player_duration())
+            self.mainwindow.music_info_box.set_song_info()
+
+            self.mainwindow.set_drpc_activity("Playing")
+        elif status == QMediaPlayer.EndOfMedia:
+            self.mainwindow.music_control_box.reset_duration()
+            self.mainwindow.music_control_box.duration_slider.setDisabled(True)
+
+            self.mainwindow.music_control_box.set_end_of_media_buttons()
 
 
 # noinspection PyArgumentList

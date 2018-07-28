@@ -38,7 +38,7 @@ class VolumeSlider(QSlider):
         self.clearFocus()
 
     def vs_value_changed(self, value):
-        self.mainwindow.player.setVolume(value)
+        self.music_control_box.player.setVolume(value)
         if self.music_control_box.mute_button.muted:
             self.music_control_box.mute_button.muted = False
 
