@@ -63,7 +63,7 @@ class PlayButton(QPushButton):
         self.music_control_box.player.play()
 
     def plb_clicked(self):
-        if not self.mainwindow.song.has_song() and not self.mainwindow.has_playlist:
+        if not self.mainwindow.song.has_song() and not self.music_control_box.player.has_playlist:
             return
 
         if self.music_control_box.player.state() == QMediaPlayer.PlayingState:

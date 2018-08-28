@@ -16,22 +16,17 @@ class InvalidFile(Exception):
     pass
 
 
+# noinspection PyArgumentList
 class WMediaPlayer(QMediaPlayer):
     def __init__(self, parent=None):
         super(WMediaPlayer, self).__init__(parent)
         self.mainwindow = parent.mainwindow
 
+        self.has_playlist = False
+
         self.stateChanged.connect(self.state_changed)
         self.positionChanged.connect(self.position_changed)
         self.mediaStatusChanged.connect(self.media_status_changed)
-
-    # @property
-    # def mainwindow(self):
-    #     return util.get_upper_parentwidget(self, 3)
-
-    # @property
-    # def music_control_box(self):
-    #     return self.parentWidget()
 
     def state_changed(self, state):
         if state == QMediaPlayer.StoppedState:
@@ -51,8 +46,13 @@ class WMediaPlayer(QMediaPlayer):
     def media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia and self.mainwindow.music_control_box.repeat_button.repeating:
             self.player.play()
-        elif status == QMediaPlayer.EndOfMedia and self.mainwindow.has_playlist:
+        elif status == QMediaPlayer.EndOfMedia and self.has_playlist:
             self.mainwindow.playlist.setCurrentIndex(self.mainwindow.playlist.currentIndex() + 1)
+
+            # This prevents a crash at the end of the playlist
+            if self.mainwindow.playlist.currentIndex() == -1:
+                self.mainwindow.playlist.setCurrentIndex(0)
+
             self.mainwindow.song.set_song(self.mainwindow.playlist.get_current_song())
 
             self.mainwindow.music_control_box.reset_duration()

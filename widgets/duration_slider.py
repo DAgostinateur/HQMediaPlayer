@@ -18,7 +18,6 @@ class DurationSlider(QSlider):
         self.setOrientation(Qt.Horizontal)
         self.setFocusPolicy(Qt.ClickFocus)
 
-        self.sliderMoved.connect(self.ds_slider_moved)
         self.sliderPressed.connect(self.ds_slider_pressed)
         self.sliderReleased.connect(self.ds_slider_released)
 
@@ -38,14 +37,12 @@ class DurationSlider(QSlider):
     def music_control_box(self):
         return self.parentWidget()
 
-    def ds_slider_moved(self, value):
-        self.music_control_box.player.setPosition(value)
-
     def ds_slider_pressed(self):
-        self.music_control_box.player.setMuted(True)
+        self.music_control_box.player.pause()
 
     def ds_slider_released(self):
-        self.music_control_box.player.setMuted(False)
+        self.music_control_box.player.setPosition(self.value())
+        self.music_control_box.player.play()
         self.clearFocus()
 
     def reset_slider(self):

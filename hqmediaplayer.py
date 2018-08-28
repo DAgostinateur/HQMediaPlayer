@@ -12,27 +12,29 @@ import audio
 import files
 import options_dialog
 import util
-from widgets import music_control_box, music_info_box, embedded_console, folders_manager
+from widgets import (music_control_box, music_info_box, full_menubar,
+                     embedded_console, folders_manager)
 
 
 # TODO:
 # Songs playing longer than they should? Or is the duration slider wrong?
+#   When moving the duration slider, when the mp3 file's length has been modified, it will
+#   not change value correctly.
+#
 # Look into "directshowplayerservice::dorender: unresolved error code 0x80040266"
 #   It's a .mp3 metadata problem. Versions of ID3 cause the issues.
 #   Found the bug:
 #       https://bugreports.qt.io/browse/QTBUG-42286
 #   Fix:
 #       Change ID3 Tags to ID3v2.3 ISO-8859-1
-#       ID3v2.3 UTF-16 and UTF-8 were causing problems
+#       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
-# Clean Playlist feature
 # Next and Back button
 # When AnimatedLabel's text is at it's original form, give it a 1.5 second delay.
 # Being able to change output device
 # QtxGlobalShortcuts, look into that
 # About Section
 # Add info on README.md
-# Clean the Menubar code
 
 
 # Fixes the TaskBar Icon bug
@@ -62,10 +64,8 @@ class HQMediaPlayer(QMainWindow):
 
         # drpc = Discord Rich Presence
         # The id that goes with it is the discord client id of the application
-        self.drpc = pypresence.client.Client(self.drpc_client_id)
+        self.drpc = None
         self.drpc_enabled = False
-
-        self.has_playlist = False
 
         self.options = options_dialog.Options()
         self.song = audio.WSong()
@@ -76,8 +76,9 @@ class HQMediaPlayer(QMainWindow):
         self.options_dialog = options_dialog.OptionsDialog(self)
         self.fol_man = folders_manager.FoldersManager(self)
 
-        self.create_menubar()
-        self.create_connections()
+
+        full_menubar.create_full_menubar(self)
+        self.restart_drpc()
 
         # all_devices = ""
         # test = QAudioDeviceInfo.availableDevices(QAudio.AudioOutput)[0]
@@ -93,6 +94,7 @@ class HQMediaPlayer(QMainWindow):
         self.dbg_console.show()
 
     def set_drpc_activity(self, state):
+        self.restart_drpc()
         if self.drpc_enabled:
             try:
                 if self.song.has_song():
@@ -122,7 +124,7 @@ class HQMediaPlayer(QMainWindow):
 
     def start_playlist(self):
         self.playlist.clear()
-        self.has_playlist = False
+        self.music_control_box.player.has_playlist = False
         if len(self.options.user_music_folders) == 0:
             return
 
@@ -131,13 +133,16 @@ class HQMediaPlayer(QMainWindow):
         self.music_control_box.player.setPlaylist(self.playlist)
         self.song.set_song(self.playlist.get_current_song())
 
-        self.has_playlist = True
+        self.music_control_box.player.has_playlist = True
+
+        self.music_control_box.stop_button.sb_clicked()
+        self.music_control_box.play_button.plb_clicked()
 
     def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Open File", "/", "MP3 (*.mp3)")
         if ".mp3" in file_type:
             self.playlist.clear()
-            self.has_playlist = False
+            self.music_control_box.player.has_playlist = False
             self.song.set_song(file_name)
             self.music_control_box.player.setMedia(self.song.content)
             self.music_control_box.stop_button.sb_clicked()
@@ -205,78 +210,6 @@ class HQMediaPlayer(QMainWindow):
         self.dbg_console.close()
         self.options_dialog.close()
         self.fol_man.close()
-
-    def create_connections(self):
-        try:
-            self.drpc_enabled = True
-            self.drpc.start()
-            self.set_drpc_activity("Stopped")
-        except pypresence.exceptions.InvalidPipe:
-            self.drpc_enabled = False
-
-    def create_menubar(self):
-        debug_console_action = QAction(self)
-        debug_console_action.setText("Debug Console")
-        debug_console_action.setIconText("Debug Console")
-        debug_console_action.setFont(QFont("Consolas", 10))
-        debug_console_action.triggered.connect(self.debug_console_action_triggered)
-
-        start_playlist_action = QAction(self)
-        start_playlist_action.setText("Start Playlist")
-        start_playlist_action.setIconText("Start Playlist")
-        start_playlist_action.setFont(QFont("Consolas", 10))
-        start_playlist_action.setShortcut("Ctrl+P")
-        start_playlist_action.triggered.connect(self.start_playlist)
-
-        open_file_action = QAction(self)
-        open_file_action.setText("Open File")
-        open_file_action.setIconText("Open File")
-        open_file_action.setFont(QFont("Consolas", 10))
-        open_file_action.setShortcut("Ctrl+O")
-        open_file_action.triggered.connect(self.open_file)
-
-        folder_manager_action = QAction(self)
-        folder_manager_action.setText("Folders Manager")
-        folder_manager_action.setIconText("Folders Manager")
-        folder_manager_action.setFont(QFont("Consolas", 10))
-        folder_manager_action.triggered.connect(self.open_folders_manager)
-
-        options_action = QAction(self)
-        options_action.setText("Options")
-        options_action.setIconText("Options")
-        options_action.setFont(QFont("Consolas", 10))
-        options_action.triggered.connect(self.open_options_menu)
-
-        restart_drpc_action = QAction(self)
-        restart_drpc_action.setText("Restart Discord rich presence")
-        restart_drpc_action.setIconText("Restart Discord rich presence")
-        restart_drpc_action.setFont(QFont("Consolas", 10))
-        restart_drpc_action.triggered.connect(self.restart_drpc)
-
-        about_action = QAction(self)
-        about_action.setText("About")
-        about_action.setIconText("About")
-        about_action.setFont(QFont("Consolas", 10))
-        about_action.triggered.connect(self.open_about)
-
-        file_menu = QMenu(self)
-        file_menu.setTitle("File")
-        file_menu.setFont(QFont("Consolas", 10))
-        file_menu.addAction(start_playlist_action)
-        file_menu.addAction(open_file_action)
-        file_menu.addAction(folder_manager_action)
-        file_menu.addAction(options_action)
-
-        help_menu = QMenu(self)
-        help_menu.setTitle("Help")
-        help_menu.setFont(QFont("Consolas", 10))
-        help_menu.addAction(debug_console_action)
-        help_menu.addAction(restart_drpc_action)
-        help_menu.addAction(about_action)
-
-        menubar = self.menuBar()
-        menubar.addMenu(file_menu)
-        menubar.addMenu(help_menu)
 
 
 if __name__ == '__main__':
