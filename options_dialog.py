@@ -215,7 +215,7 @@ class OptionsDialog(QDialog):
     def button_box_accepted(self):
         self.mainwindow.options.save_user_defaults(None, self.behaviour_scrolling_text_speed,
                                                    self.behaviour_play_button, None)
-        self.mainwindow.music_info_box.set_timer_interval()
+        self.mainwindow.music_info_box.set_timers_interval()
         self.close()
 
     def button_box_rejected(self):

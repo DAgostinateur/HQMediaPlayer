@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QGroupBox
-from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
 
 from widgets import (animated_label, album_art_label)
@@ -20,32 +19,29 @@ class MusicInfoBox(QGroupBox):
         self.length_info = animated_label.AnimatedLabel(self, 55, "Length :", False)
         self.album_art_label = album_art_label.AlbumArtLabel(self)
 
-        self.timer_interval = self.mainwindow.options.get_default_timer_interval()
-
-        self.timer = QTimer()
-        self.timer.setInterval(self.timer_interval)
-        self.timer.timeout.connect(self.animate_info)
-
     @property
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 2)
 
-    def set_timer_interval(self):
-        self.timer_interval = self.mainwindow.options.get_default_timer_interval()
-        self.timer.setInterval(self.timer_interval)
+    def set_timers_interval(self):
+        self.title_info.timer_interval = self.mainwindow.options.get_default_timer_interval()
+        self.title_info.timer.setInterval(self.title_info.timer_interval)
+
+        self.artist_info.timer_interval = self.mainwindow.options.get_default_timer_interval()
+        self.artist_info.timer.setInterval(self.artist_info.timer_interval)
+
+        self.length_info.imer_interval = self.mainwindow.options.get_default_timer_interval()
+        self.length_info.timer.setInterval(self.length_info.timer_interval)
 
     def reset_music_info(self):
-        self.timer.stop()
+        self.title_info.timer.stop()
+        self.artist_info.timer.stop()
+        self.length_info.timer.stop()
 
         self.title_info.reset_label_text()
         self.artist_info.reset_label_text()
         self.length_info.reset_label_text()
         self.album_art_label.clear()
-
-    def animate_info(self):
-        self.title_info.animate_label_text()
-        self.artist_info.animate_label_text()
-        self.length_info.animate_label_text()
 
     def set_song_info(self):
         self.title_info.set_label_text(self.mainwindow.song.get_info(audio.WSong.TITLE))
@@ -56,4 +52,6 @@ class MusicInfoBox(QGroupBox):
             self.album_art_label.setPixmap(QPixmap(files.TEMP_PNG_FILE))
             self.mainwindow.song.remove_apic_file()
 
-        self.timer.start()
+        self.title_info.timer.start()
+        self.artist_info.timer.start()
+        self.length_info.timer.start()

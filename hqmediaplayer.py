@@ -30,7 +30,6 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
 # Next and Back button
-# When AnimatedLabel's text is at it's original form, give it a 1.5 second delay.
 # Being able to change output device
 # QtxGlobalShortcuts, look into that
 # About Section
@@ -75,7 +74,6 @@ class HQMediaPlayer(QMainWindow):
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
         self.options_dialog = options_dialog.OptionsDialog(self)
         self.fol_man = folders_manager.FoldersManager(self)
-
 
         full_menubar.create_full_menubar(self)
         self.restart_drpc()
