@@ -30,7 +30,7 @@ class MusicInfoBox(QGroupBox):
         self.artist_info.timer_interval = self.mainwindow.options.get_default_timer_interval()
         self.artist_info.timer.setInterval(self.artist_info.timer_interval)
 
-        self.length_info.imer_interval = self.mainwindow.options.get_default_timer_interval()
+        self.length_info.timer_interval = self.mainwindow.options.get_default_timer_interval()
         self.length_info.timer.setInterval(self.length_info.timer_interval)
 
     def reset_music_info(self):

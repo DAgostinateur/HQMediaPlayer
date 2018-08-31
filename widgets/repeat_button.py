@@ -13,7 +13,7 @@ class RepeatButton(QPushButton):
 
         self.repeating = False
 
-        self.setGeometry(216, 125, 25, 25)
+        self.setGeometry(180, 125, 25, 25)
         self.setToolTip("Repeat")
         self.setIcon(QIcon(files.Images.REPEAT))
         self.setIconSize(QSize(25, 25))

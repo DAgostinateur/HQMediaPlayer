@@ -12,7 +12,7 @@ class MuteButton(QPushButton):
         super(MuteButton, self).__init__(parent)
         self.muted = False
 
-        self.setGeometry(180, 90, 25, 25)
+        self.setGeometry(144, 59, 25, 25)
         self.setToolTip("Mute")
         self.setIcon(self.music_control_box.volume_slider.get_volume_icon())
         self.setIconSize(QSize(25, 25))

@@ -11,7 +11,7 @@ import util
 class PauseButton(QPushButton):
     def __init__(self, parent=None):
         super(PauseButton, self).__init__(parent)
-        self.setGeometry(252, 90, 25, 25)
+        self.setGeometry(216, 125, 25, 25)
         self.setToolTip("Pause")
         self.setIcon(QIcon(files.Images.PAUSE))
         self.setIconSize(QSize(25, 25))

@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 
 from widgets import (volume_slider, mute_button, repeat_button,
                      stop_button, pause_button, play_button,
+                     next_button, previous_button,
                      music_position_label, duration_slider)
 
 import util
@@ -28,6 +29,8 @@ class MusicControlBox(QGroupBox):
         self.stop_button = stop_button.StopButton(self)
         self.pause_button = pause_button.PauseButton(self)
         self.play_button = play_button.PlayButton(self)
+        self.next_button = next_button.NextButton(self)
+        self.previous_button = previous_button.PreviousButton(self)
 
         self.music_position_label = music_position_label.MusicPositionLabel(self)
 

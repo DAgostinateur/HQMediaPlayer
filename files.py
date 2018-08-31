@@ -13,6 +13,9 @@ class Images:
     HQPLAY = "images\\hqplay.png"
     HQPLAYING = "images\\hqplaying.png"
 
+    NEXT = "images\\next.png"
+    PREVIOUS = "images\\previous.png"
+
     PAUSE = "images\\pause.png"
     PAUSED = "images\\paused.png"
 

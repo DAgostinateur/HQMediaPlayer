@@ -45,33 +45,44 @@ class WMediaPlayer(QMediaPlayer):
 
     def media_status_changed(self, status):
         if status == QMediaPlayer.EndOfMedia and self.mainwindow.music_control_box.repeat_button.repeating:
-            self.player.play()
+            self.play()
         elif status == QMediaPlayer.EndOfMedia and self.has_playlist:
-            self.mainwindow.playlist.setCurrentIndex(self.mainwindow.playlist.currentIndex() + 1)
-
-            # This prevents a crash at the end of the playlist
-            if self.mainwindow.playlist.currentIndex() == -1:
-                self.mainwindow.playlist.setCurrentIndex(0)
-
-            self.mainwindow.song.set_song(self.mainwindow.playlist.get_current_song())
-
-            self.mainwindow.music_control_box.reset_duration()
-            self.mainwindow.music_control_box.duration_slider.setMaximum(self.mainwindow.song.get_player_duration())
-            self.mainwindow.music_info_box.set_song_info()
-
-            self.mainwindow.set_drpc_activity("Playing")
+            self.next_index()
         elif status == QMediaPlayer.EndOfMedia:
             self.mainwindow.music_control_box.reset_duration()
             self.mainwindow.music_control_box.duration_slider.setDisabled(True)
 
             self.mainwindow.music_control_box.set_end_of_media_buttons()
 
+    def next_index(self):
+        if self.mainwindow.playlist.currentIndex() >= self.mainwindow.playlist.mediaCount() - 1:
+            self.mainwindow.playlist.setCurrentIndex(0)
+        else:
+            self.mainwindow.playlist.next()
+        self.set_new_current_song()
+
+    def previous_index(self):
+        if self.mainwindow.playlist.currentIndex() <= 0:
+            self.mainwindow.playlist.setCurrentIndex(self.mainwindow.playlist.mediaCount() - 1)
+        else:
+            self.mainwindow.playlist.previous()
+        self.set_new_current_song()
+
+    def set_new_current_song(self):
+        # This method needs a better name.
+        self.mainwindow.song.set_song(self.mainwindow.playlist.get_current_song())
+
+        self.mainwindow.music_control_box.reset_duration()
+        self.mainwindow.music_control_box.duration_slider.setMaximum(self.mainwindow.song.get_player_duration())
+        self.mainwindow.music_info_box.set_song_info()
+
+        self.state_changed(self.state())
+
 
 # noinspection PyArgumentList
 class WPlaylist(QMediaPlaylist):
     def __init__(self, parent=None):
         super(WPlaylist, self).__init__(None)
-
         self.mainwindow = parent
 
     def get_current_song(self):
