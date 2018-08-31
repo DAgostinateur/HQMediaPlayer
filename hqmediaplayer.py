@@ -189,10 +189,12 @@ class HQMediaPlayer(QMainWindow):
         #     self.music_control_box.pause_button.pb_clicked()
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
-        elif util.check_keys(key_list, [Qt.Key_MediaNext]):
-            pass
-        elif util.check_keys(key_list, [Qt.Key_MediaPrevious]):
-            pass
+        elif (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.RightArrow]) or
+              util.check_keys(key_list, [Qt.Key_MediaNext])):
+            self.music_control_box.next_button.nb_clicked()
+        elif (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.LeftArrow]) or
+              util.check_keys(key_list, [Qt.Key_MediaPrevious])):
+            self.music_control_box.previous_button.prb_clicked()
 
         # self.dbg_console.write(key_list)
 
