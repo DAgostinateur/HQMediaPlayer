@@ -102,7 +102,6 @@ class HQMediaPlayer(QMainWindow):
                                            large_image="app_logo",
                                            small_image=player_state,
                                            small_text="Player {}".format(player_state.capitalize()))
-                    print(self.song.mp3.info.length)
                 else:
                     self.drpc.set_activity(state="Artist: N/A",
                                            details="Listening to 'N/A'",
