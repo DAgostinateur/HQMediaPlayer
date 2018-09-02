@@ -13,6 +13,8 @@ class EmbeddedConsole(QWidget):
 
     def __init__(self):
         super(EmbeddedConsole, self).__init__(None)
+        self.setMinimumSize(480, 360)
+        self.setMaximumSize(480, 360)
         self.setGeometry(50, 50, 480, 360)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Debug Console")

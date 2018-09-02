@@ -30,13 +30,13 @@ class WMediaPlayer(QMediaPlayer):
 
     def state_changed(self, state):
         if state == QMediaPlayer.StoppedState:
-            self.mainwindow.set_drpc_activity("Stopped")
+            self.mainwindow.set_drpc_activity("stopped")
         elif state == QMediaPlayer.PlayingState:
-            self.mainwindow.set_drpc_activity("Playing")
+            self.mainwindow.set_drpc_activity("playing")
         elif state == QMediaPlayer.PausedState:
-            self.mainwindow.set_drpc_activity("Paused")
+            self.mainwindow.set_drpc_activity("paused")
         else:
-            self.mainwindow.set_drpc_activity("Broken?")
+            self.mainwindow.set_drpc_activity("broken")
 
     def position_changed(self, position):
         if not self.state() == QMediaPlayer.StoppedState:

@@ -29,6 +29,7 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       Change ID3 Tags to ID3v2.3 ISO-8859-1
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
+# Fix the MediaPlay and MediaPause conflict with MediaTogglePlayPause
 # Being able to change output device
 # QtxGlobalShortcuts, look into that
 # About Section
@@ -52,6 +53,7 @@ class HQMediaPlayer(QMainWindow):
         self.first_release = False
 
         self.setMinimumSize(702, 474)
+        self.setMaximumSize(702, 474)
         self.setFont(QFont("Consolas"))
         self.setWindowTitle("HQMediaPlayer")
         self.setIconSize(QSize(32, 32))
@@ -90,18 +92,23 @@ class HQMediaPlayer(QMainWindow):
     def debug_console_action_triggered(self):
         self.dbg_console.show()
 
-    def set_drpc_activity(self, state):
+    def set_drpc_activity(self, player_state: str):
         self.restart_drpc()
         if self.drpc_enabled:
             try:
                 if self.song.has_song():
-                    self.drpc.set_activity(large_image="app_logo",
-                                           state="Player {}".format(state),
-                                           details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)))
+                    self.drpc.set_activity(state="Artist: {}".format(self.song.get_info(audio.WSong.ARTIST)),
+                                           details="Listening to '{}'".format(self.song.get_info(audio.WSong.TITLE)),
+                                           large_image="app_logo",
+                                           small_image=player_state,
+                                           small_text="Player {}".format(player_state.capitalize()))
+                    print(self.song.mp3.info.length)
                 else:
-                    self.drpc.set_activity(large_image="app_logo",
-                                           state="Player {}".format(state),
-                                           details="Listening to 'N/A'")
+                    self.drpc.set_activity(state="Artist: N/A",
+                                           details="Listening to 'N/A'",
+                                           large_image="app_logo",
+                                           small_image=player_state,
+                                           small_text="Player {}".format(player_state.capitalize()))
             except pypresence.exceptions.InvalidID:
                 self.drpc_enabled = False
                 self.drpc.close()
@@ -171,10 +178,11 @@ class HQMediaPlayer(QMainWindow):
     def process_multi_keys(self, key_list):
         if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
+
             if self.music_control_box.player.state() == QMediaPlayer.PlayingState:
                 self.music_control_box.pause_button.pb_clicked()
-            elif self.music_control_box.player.state() == QMediaPlayer.PausedState or \
-                    self.music_control_box.player.state() == QMediaPlayer.StoppedState:
+            elif (self.music_control_box.player.state() == QMediaPlayer.PausedState or
+                  self.music_control_box.player.state() == QMediaPlayer.StoppedState):
                 self.music_control_box.play_button.plb_clicked()
 
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Up]):
