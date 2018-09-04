@@ -1,3 +1,15 @@
+from PyQt5.QtCore import Qt
+
+
+def is_multimedia_key(key):
+    return (key == Qt.Key_MediaPrevious or
+            key == Qt.Key_MediaNext or
+            key == Qt.Key_MediaPause or
+            key == Qt.Key_MediaPlay or
+            key == Qt.Key_MediaStop or
+            key == Qt.Key_MediaTogglePlayPause)
+
+
 def get_upper_parentwidget(widget, parent_position: int):
     """This function replaces this:
           self.parentWidget().parentWidget().parentWidget()

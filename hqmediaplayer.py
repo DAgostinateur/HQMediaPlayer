@@ -29,8 +29,9 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       Change ID3 Tags to ID3v2.3 ISO-8859-1
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
-# Fix the MediaPlay and MediaPause conflict with MediaTogglePlayPause
-# Being able to change output device
+# More Options:
+#   Being able to change output device
+#
 # QtxGlobalShortcuts, look into that
 # About Section
 # Add info on README.md
@@ -51,6 +52,9 @@ class HQMediaPlayer(QMainWindow):
         super(HQMediaPlayer, self).__init__(parent)
         self.key_list = []
         self.first_release = False
+
+        self.multimedia_key_pressed = False
+        self.multimedia_key = None
 
         self.setMinimumSize(702, 474)
         self.setMaximumSize(702, 474)
@@ -102,7 +106,6 @@ class HQMediaPlayer(QMainWindow):
                                            large_image="app_logo",
                                            small_image=player_state,
                                            small_text="Player {}".format(player_state.capitalize()))
-                    print(self.song.mp3.info.length)
                 else:
                     self.drpc.set_activity(state="Artist: N/A",
                                            details="Listening to 'N/A'",
@@ -167,7 +170,16 @@ class HQMediaPlayer(QMainWindow):
 
     def keyReleaseEvent(self, event: QKeyEvent):
         if self.first_release:
-            self.process_multi_keys(self.key_list)
+            if util.is_multimedia_key(self.key_list[0]) and not self.multimedia_key_pressed:
+                self.multimedia_key_pressed = not self.multimedia_key_pressed
+                self.multimedia_key = self.key_list[0]
+            else:
+                if self.multimedia_key is not None:
+                    self.process_multi_keys([self.multimedia_key])
+                    self.multimedia_key = None
+                    self.multimedia_key_pressed = not self.multimedia_key_pressed
+                else:
+                    self.process_multi_keys(self.key_list)
 
         self.first_release = False
         try:
@@ -178,7 +190,6 @@ class HQMediaPlayer(QMainWindow):
     def process_multi_keys(self, key_list):
         if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
                 util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
-
             if self.music_control_box.player.state() == QMediaPlayer.PlayingState:
                 self.music_control_box.pause_button.pb_clicked()
             elif (self.music_control_box.player.state() == QMediaPlayer.PausedState or
@@ -191,10 +202,10 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.volume_slider.decrease_volume(5)
         elif util.check_keys(key_list, [Qt.Key_MediaStop]):
             self.music_control_box.stop_button.sb_clicked()
-        # elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
-        #     self.music_control_box.play_button.plb_clicked()
-        # elif util.check_keys(key_list, [Qt.Key_MediaPause]):
-        #     self.music_control_box.pause_button.pb_clicked()
+        elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
+            self.music_control_box.play_button.plb_clicked()
+        elif util.check_keys(key_list, [Qt.Key_MediaPause]):
+            self.music_control_box.pause_button.pb_clicked()
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
         elif (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.RightArrow]) or
