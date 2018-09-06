@@ -105,7 +105,8 @@ class Options(object):
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,
                       '{}'.format(self.json_play_button_name): play_button_behaviour,
-                      self.json_music_folders_name: self.user_music_folders}
+                      self.json_music_folders_name: self.user_music_folders,
+                      '{}'.format(self.json_last_folder_opened_name): last_folder_opened}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -227,7 +228,7 @@ class OptionsDialog(QDialog):
 
     def button_box_accepted(self):
         self.mainwindow.options.save_user_defaults(None, self.behaviour_scrolling_text_speed,
-                                                   self.behaviour_play_button, None)
+                                                   self.behaviour_play_button, None, None)
         self.mainwindow.music_info_box.set_timers_interval()
         self.close()
 
