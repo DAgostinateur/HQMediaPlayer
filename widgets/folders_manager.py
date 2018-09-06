@@ -2,6 +2,8 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QWidget, QPushButton, QFileDialog, QLabel, QListWidget
 from PyQt5.QtCore import Qt, QSize
 
+import os.path
+
 import files
 
 
@@ -72,9 +74,12 @@ class FoldersManager(QWidget):
         self.remove_button.clearFocus()
 
     def ab_clicked(self):
-        folder = QFileDialog.getExistingDirectory(self, "Open Folder", "/", QFileDialog.ShowDirsOnly)
+        folder = QFileDialog.getExistingDirectory(self, "Open Folder",
+                                                  self.mainwindow.options.get_default_last_folder_opened(),
+                                                  QFileDialog.ShowDirsOnly)
         if len(folder) != 0:
-            self.mainwindow.options.save_user_defaults(None, None, None, folder)
+            parent_folder = os.path.dirname(r"{}".format(folder))
+            self.mainwindow.options.save_user_defaults(None, None, None, folder, parent_folder)
             self.folder_list.addItem(folder)
             self.folder_list.sortItems()
 

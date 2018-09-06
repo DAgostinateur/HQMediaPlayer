@@ -16,17 +16,20 @@ class Options(object):
     default_app_volume = 25
     default_app_timer_interval = 200
     default_app_play_button_behaviour = 1
+    default_app_last_folder_opened = "/"
 
     json_volume_name = "default_volume"
     json_timer_name = "default_timer_interval"
     json_play_button_name = "default_play_button_behaviour"
     json_music_folders_name = "music_folders"
+    json_last_folder_opened_name = "default_last_folder_opened"
 
     def __init__(self):
         self.default_user_volume = None
         self.default_user_timer_interval = None
         self.default_user_play_button_behaviour = None
         self.user_music_folders = None
+        self.default_user_last_folder_opened = None
 
         self.json_user_defaults = None
 
@@ -48,6 +51,9 @@ class Options(object):
     def get_default_play_button(self):
         return self.get_default_option(self.default_user_play_button_behaviour, self.default_app_play_button_behaviour)
 
+    def get_default_last_folder_opened(self):
+        return self.get_default_option(self.default_user_last_folder_opened, self.default_app_last_folder_opened)
+
     def get_user_defaults(self):
         if not os.path.exists(self.default_app_options_file):
             return
@@ -62,8 +68,9 @@ class Options(object):
             self.default_user_timer_interval = self.set_user_default(self.json_timer_name)
             self.default_user_play_button_behaviour = self.set_user_default(self.json_play_button_name)
             self.user_music_folders = self.set_user_default(self.json_music_folders_name)
+            self.default_user_last_folder_opened = self.set_user_default(self.json_last_folder_opened_name)
 
-    def save_user_defaults(self, volume, timer_interval, play_button_behaviour, music_folder):
+    def save_user_defaults(self, volume, timer_interval, play_button_behaviour, music_folder, last_folder_opened):
         if volume is None:
             volume = self.get_default_option(self.default_user_volume,
                                              self.default_app_play_button_behaviour)
@@ -88,6 +95,12 @@ class Options(object):
                 self.user_music_folders = [music_folder]
             else:
                 self.user_music_folders.append(music_folder)
+
+        if last_folder_opened is None:
+            last_folder_opened = self.get_default_option(self.default_user_last_folder_opened,
+                                                         self.default_app_last_folder_opened)
+        else:
+            self.default_user_last_folder_opened = last_folder_opened
 
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,

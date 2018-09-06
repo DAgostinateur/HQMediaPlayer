@@ -30,6 +30,7 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
 # More Options:
+#   Toggle playlist starting player
 #   Being able to change output device
 #
 # QtxGlobalShortcuts, look into that
@@ -224,7 +225,7 @@ class HQMediaPlayer(QMainWindow):
         if self.drpc_enabled:
             self.drpc.close()
 
-        self.options.save_user_defaults(self.music_control_box.volume_slider.value(), None, None, None)
+        self.options.save_user_defaults(self.music_control_box.volume_slider.value(), None, None, None, None)
         self.dbg_console.close()
         self.options_dialog.close()
         self.fol_man.close()
