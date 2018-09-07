@@ -17,12 +17,14 @@ class Options(object):
     default_app_timer_interval = 200
     default_app_play_button_behaviour = 1
     default_app_last_folder_opened = "/"
+    default_app_playlist_autoplay = 1
 
     json_volume_name = "default_volume"
     json_timer_name = "default_timer_interval"
     json_play_button_name = "default_play_button_behaviour"
     json_music_folders_name = "music_folders"
     json_last_folder_opened_name = "default_last_folder_opened"
+    json_playlist_autoplay = "default_playlist_autoplay"
 
     def __init__(self):
         self.default_user_volume = None
@@ -30,6 +32,7 @@ class Options(object):
         self.default_user_play_button_behaviour = None
         self.user_music_folders = None
         self.default_user_last_folder_opened = None
+        self.default_user_playlist_autoplay = None
 
         self.json_user_defaults = None
 
@@ -54,6 +57,9 @@ class Options(object):
     def get_default_last_folder_opened(self):
         return self.get_default_option(self.default_user_last_folder_opened, self.default_app_last_folder_opened)
 
+    def get_default_playlist_autoplay(self):
+        return self.get_default_option(self.default_user_playlist_autoplay, self.default_app_playlist_autoplay)
+
     def get_user_defaults(self):
         if not os.path.exists(self.default_app_options_file):
             return
@@ -69,23 +75,22 @@ class Options(object):
             self.default_user_play_button_behaviour = self.set_user_default(self.json_play_button_name)
             self.user_music_folders = self.set_user_default(self.json_music_folders_name)
             self.default_user_last_folder_opened = self.set_user_default(self.json_last_folder_opened_name)
+            self.default_user_playlist_autoplay = self.set_user_default(self.json_playlist_autoplay)
 
-    def save_user_defaults(self, volume, timer_interval, play_button_behaviour, music_folder, last_folder_opened):
+    def save_user_defaults(self, volume=None, timer_interval=None, play_button_behaviour=None, music_folder=None,
+                           last_folder_opened=None, playlist_autoplay=None):
         if volume is None:
-            volume = self.get_default_option(self.default_user_volume,
-                                             self.default_app_play_button_behaviour)
+            volume = self.get_default_volume()
         else:
             self.default_user_volume = volume
 
         if timer_interval is None:
-            timer_interval = self.get_default_option(self.default_user_timer_interval,
-                                                     self.default_app_timer_interval)
+            timer_interval = self.get_default_timer_interval()
         else:
             self.default_user_timer_interval = timer_interval
 
         if play_button_behaviour is None:
-            play_button_behaviour = self.get_default_option(self.default_user_play_button_behaviour,
-                                                            self.default_app_play_button_behaviour)
+            play_button_behaviour = self.get_default_play_button()
         else:
             self.default_user_play_button_behaviour = play_button_behaviour
 
@@ -97,16 +102,21 @@ class Options(object):
                 self.user_music_folders.append(music_folder)
 
         if last_folder_opened is None:
-            last_folder_opened = self.get_default_option(self.default_user_last_folder_opened,
-                                                         self.default_app_last_folder_opened)
+            last_folder_opened = self.get_default_last_folder_opened()
         else:
             self.default_user_last_folder_opened = last_folder_opened
+
+        if playlist_autoplay is None:
+            playlist_autoplay = self.get_default_playlist_autoplay()
+        else:
+            self.default_user_playlist_autoplay = playlist_autoplay
 
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,
                       '{}'.format(self.json_play_button_name): play_button_behaviour,
                       self.json_music_folders_name: self.user_music_folders,
-                      '{}'.format(self.json_last_folder_opened_name): last_folder_opened}
+                      '{}'.format(self.json_last_folder_opened_name): last_folder_opened,
+                      '{}'.format(self.json_playlist_autoplay): playlist_autoplay}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -120,7 +130,9 @@ class Options(object):
         info_dicts = {'{}'.format(self.json_volume_name): self.default_user_volume,
                       '{}'.format(self.json_timer_name): self.default_user_timer_interval,
                       '{}'.format(self.json_play_button_name): self.default_user_play_button_behaviour,
-                      self.json_music_folders_name: self.user_music_folders}
+                      self.json_music_folders_name: self.user_music_folders,
+                      '{}'.format(self.json_last_folder_opened_name): self.default_user_last_folder_opened,
+                      '{}'.format(self.json_playlist_autoplay): self.default_user_playlist_autoplay}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -138,6 +150,9 @@ class OptionsDialog(QDialog):
     behaviour_play_button_restart = 1
     behaviour_play_button_nothing = 2
 
+    behaviour_playlist_autoplay_start = 1
+    behaviour_playlist_autoplay_nothing = 2
+
     def __init__(self, main_parent: hqmediaplayer.HQMediaPlayer = None):
         super(OptionsDialog, self).__init__()
         self.mainwindow = main_parent
@@ -150,6 +165,7 @@ class OptionsDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & (~Qt.WindowContextHelpButtonHint))
 
         self.behaviour_play_button = self.mainwindow.options.get_default_play_button()
+        self.behaviour_playlist_autoplay = self.mainwindow.options.get_default_playlist_autoplay()
         self.behaviour_scrolling_text_speed = self.mainwindow.options.get_default_timer_interval()
 
         self.behaviour_tab = QWidget()
@@ -159,6 +175,9 @@ class OptionsDialog(QDialog):
         self.option_scrolling_text = QGroupBox(self.behaviour_tab)
         self.label_description = QLabel(self.option_scrolling_text)
         self.spin_millisecond = QSpinBox(self.option_scrolling_text)
+        self.option_playlist_autoplay = QGroupBox(self.behaviour_tab)
+        self.radio_autoplay = QRadioButton(self.option_playlist_autoplay)
+        self.radio_no_autoplay = QRadioButton(self.option_playlist_autoplay)
         self.create_tabs()
 
         self.button_box = QDialogButtonBox(self)
@@ -170,6 +189,8 @@ class OptionsDialog(QDialog):
         self.radio_nothing.clicked.connect(self.rn_clicked)
         self.radio_restart.clicked.connect(self.rr_clicked)
         self.spin_millisecond.valueChanged.connect(self.sm_value_change)
+        self.radio_autoplay.clicked.connect(self.ra_clicked)
+        self.radio_no_autoplay.clicked.connect(self.rna_clicked)
 
     def rn_clicked(self):
         """Radio Nothing clicked"""
@@ -183,11 +204,24 @@ class OptionsDialog(QDialog):
         """Spin Millisecond value changed"""
         self.behaviour_scrolling_text_speed = self.spin_millisecond.value()
 
+    def ra_clicked(self):
+        """Radio Autoplay clicked"""
+        self.behaviour_playlist_autoplay = self.behaviour_playlist_autoplay_start
+
+    def rna_clicked(self):
+        """Radio No Autoplay clicked"""
+        self.behaviour_playlist_autoplay = self.behaviour_playlist_autoplay_nothing
+
     def update_info_choices(self):
         if self.behaviour_play_button == self.behaviour_play_button_restart:
             self.radio_restart.setChecked(True)
         else:
             self.radio_nothing.setChecked(True)
+
+        if self.behaviour_playlist_autoplay == self.behaviour_playlist_autoplay_start:
+            self.radio_autoplay.setChecked(True)
+        else:
+            self.radio_no_autoplay.setChecked(True)
 
         self.spin_millisecond.setValue(self.mainwindow.options.get_default_option(
             self.mainwindow.options.default_user_timer_interval,
@@ -203,6 +237,7 @@ class OptionsDialog(QDialog):
         self.option_play_button.setGeometry(10, 10, 131, 71)
         self.option_play_button.setToolTip("When a song is playing, the play button (when clicked) will...")
         self.option_play_button.setTitle("Play Button")
+        self.option_play_button.setAlignment(Qt.AlignCenter)
 
         self.radio_nothing.setGeometry(10, 40, 111, 20)
         self.radio_nothing.setToolTip("The play button (when clicked) will do nothing.")
@@ -214,6 +249,7 @@ class OptionsDialog(QDialog):
 
         self.option_scrolling_text.setGeometry(10, 85, 131, 81)
         self.option_scrolling_text.setTitle("Scrolling Text")
+        self.option_scrolling_text.setAlignment(Qt.AlignCenter)
 
         self.label_description.setGeometry(10, 20, 47, 45)
         self.label_description.setToolTip("1000 millisecond = One character per second")
@@ -224,11 +260,25 @@ class OptionsDialog(QDialog):
         self.spin_millisecond.setMaximum(9999)
         self.spin_millisecond.setDisplayIntegerBase(10)
 
+        self.option_playlist_autoplay.setGeometry(150, 10, 131, 71)
+        self.option_playlist_autoplay.setToolTip("When starting the playlist, it will...")
+        self.option_playlist_autoplay.setTitle("Playlist Autoplay")
+        self.option_playlist_autoplay.setAlignment(Qt.AlignCenter)
+
+        self.radio_autoplay.setGeometry(10, 20, 111, 20)
+        self.radio_autoplay.setToolTip("It will automatically start the player.")
+        self.radio_autoplay.setText("Autoplay")
+
+        self.radio_no_autoplay.setGeometry(10, 40, 111, 20)
+        self.radio_no_autoplay.setToolTip("It will NOT automatically start the player.")
+        self.radio_no_autoplay.setText("No Autoplay")
+
         self.tab_widget.addTab(self.behaviour_tab, "Behaviour")
 
     def button_box_accepted(self):
-        self.mainwindow.options.save_user_defaults(None, self.behaviour_scrolling_text_speed,
-                                                   self.behaviour_play_button, None, None)
+        self.mainwindow.options.save_user_defaults(timer_interval=self.behaviour_scrolling_text_speed,
+                                                   play_button_behaviour=self.behaviour_play_button,
+                                                   playlist_autoplay=self.behaviour_playlist_autoplay)
         self.mainwindow.music_info_box.set_timers_interval()
         self.close()
 

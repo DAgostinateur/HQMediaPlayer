@@ -143,8 +143,9 @@ class HQMediaPlayer(QMainWindow):
 
         self.music_control_box.player.has_playlist = True
 
-        self.music_control_box.stop_button.sb_clicked()
-        self.music_control_box.play_button.plb_clicked()
+        if self.options.get_default_playlist_autoplay() == self.options_dialog.behaviour_playlist_autoplay_start:
+            self.music_control_box.stop_button.sb_clicked()
+            self.music_control_box.play_button.plb_clicked()
 
     def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Open File", "/", "MP3 (*.mp3)")
@@ -225,7 +226,7 @@ class HQMediaPlayer(QMainWindow):
         if self.drpc_enabled:
             self.drpc.close()
 
-        self.options.save_user_defaults(self.music_control_box.volume_slider.value(), None, None, None, None)
+        self.options.save_user_defaults(volume=self.music_control_box.volume_slider.value())
         self.dbg_console.close()
         self.options_dialog.close()
         self.fol_man.close()
