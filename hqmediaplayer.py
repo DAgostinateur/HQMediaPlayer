@@ -13,7 +13,7 @@ import files
 import options_dialog
 import util
 from widgets import (music_control_box, music_info_box, full_menubar,
-                     embedded_console, folders_manager)
+                     debug_console, folders_manager)
 
 
 # TODO:
@@ -29,8 +29,9 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       Change ID3 Tags to ID3v2.3 ISO-8859-1
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
+# There's a bug with the fix i added to the double multimedia key input bug. It sometimes doesnt work.
+#
 # More Options:
-#   Toggle playlist starting player
 #   Being able to change output device
 #
 # QtxGlobalShortcuts, look into that
@@ -75,7 +76,7 @@ class HQMediaPlayer(QMainWindow):
         self.options = options_dialog.Options()
         self.song = audio.WSong()
         self.playlist = audio.WPlaylist(self)
-        self.dbg_console = embedded_console.EmbeddedConsole()
+        self.debug_console = debug_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
         self.options_dialog = options_dialog.OptionsDialog(self)
@@ -95,7 +96,7 @@ class HQMediaPlayer(QMainWindow):
         #     print(all_devices)
 
     def debug_console_action_triggered(self):
-        self.dbg_console.show()
+        self.debug_console.show()
 
     def set_drpc_activity(self, player_state: str):
         self.restart_drpc()
@@ -175,13 +176,19 @@ class HQMediaPlayer(QMainWindow):
             if util.is_multimedia_key(self.key_list[0]) and not self.multimedia_key_pressed:
                 self.multimedia_key_pressed = not self.multimedia_key_pressed
                 self.multimedia_key = self.key_list[0]
+                self.debug_console.write("Multimedia Key Pressed: {}".format(str(self.key_list)))
             else:
                 if self.multimedia_key is not None:
                     self.process_multi_keys([self.multimedia_key])
+
+                    self.debug_console.write(
+                        "Process Multimedia Key {} -- {}:".format(str(self.key_list), str(self.multimedia_key)))
+
                     self.multimedia_key = None
                     self.multimedia_key_pressed = not self.multimedia_key_pressed
                 else:
                     self.process_multi_keys(self.key_list)
+                    self.debug_console.write("Process Any Keys: {}".format(str(self.key_list)))
 
         self.first_release = False
         try:
@@ -227,7 +234,7 @@ class HQMediaPlayer(QMainWindow):
             self.drpc.close()
 
         self.options.save_user_defaults(volume=self.music_control_box.volume_slider.value())
-        self.dbg_console.close()
+        self.debug_console.close()
         self.options_dialog.close()
         self.fol_man.close()
 

@@ -79,7 +79,7 @@ class FoldersManager(QWidget):
                                                   QFileDialog.ShowDirsOnly)
         if len(folder) != 0:
             parent_folder = os.path.dirname(r"{}".format(folder))
-            self.mainwindow.options.save_user_defaults(music_folder=folder, parent_folder=parent_folder)
+            self.mainwindow.options.save_user_defaults(music_folder=folder, last_folder_opened=parent_folder)
             self.folder_list.addItem(folder)
             self.folder_list.sortItems()
 

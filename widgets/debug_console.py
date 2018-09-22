@@ -20,6 +20,8 @@ class EmbeddedConsole(QWidget):
         self.setWindowTitle("Debug Console")
         self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
 
+        self.first_write = True
+
         self.console = QTextEdit(self)
         self.console.setGeometry(0, 0, 480, 360)
         self.console.setStyleSheet(self.CONSOLE_STYLESHEET)
@@ -33,8 +35,13 @@ class EmbeddedConsole(QWidget):
 
         :param text: String to output
         """
-        with open(files.DEBUG_FILE, 'a') as f:
-            f.write("{0}\n".format(text))
+        if self.first_write:
+            with open(files.DEBUG_FILE, 'a') as f:
+                f.write("----------\n{0}\n".format(text))
+            self.first_write = False
+        else:
+            with open(files.DEBUG_FILE, 'a') as f:
+                f.write("{0}\n".format(text))
 
         self.console.insertPlainText("{0}\n".format(text))
         self.console.moveCursor(QTextCursor.End)
