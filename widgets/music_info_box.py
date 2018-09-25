@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtGui import QPixmap
 
-from widgets import (animated_label, album_art_label)
+from widgets import (animated_label, album_art_label, playlist_total_label)
 
 import audio
 import util
@@ -14,6 +14,7 @@ class MusicInfoBox(QGroupBox):
         super(MusicInfoBox, self).__init__(parent)
         self.setGeometry(7, 17, 381, 155)
 
+        self.playlist_total_info = playlist_total_label.PlaylistTotalLabel(self)
         self.title_info = animated_label.AnimatedLabel(self, 15, "Title  :", True)
         self.artist_info = animated_label.AnimatedLabel(self, 35, "Artist :", True)
         self.length_info = animated_label.AnimatedLabel(self, 55, "Length :", False)
@@ -38,12 +39,14 @@ class MusicInfoBox(QGroupBox):
         self.artist_info.timer.stop()
         self.length_info.timer.stop()
 
+        self.playlist_total_info.reset_total()
         self.title_info.reset_label_text()
         self.artist_info.reset_label_text()
         self.length_info.reset_label_text()
         self.album_art_label.clear()
 
     def set_song_info(self):
+        self.playlist_total_info.set_playlist_total()
         self.title_info.set_label_text(self.mainwindow.song.get_info(audio.WSong.TITLE))
         self.artist_info.set_label_text(self.mainwindow.song.get_info(audio.WSong.ARTIST))
         self.length_info.set_label_text(util.format_duration(self.mainwindow.song.get_real_duration()))

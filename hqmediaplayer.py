@@ -29,7 +29,7 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       Change ID3 Tags to ID3v2.3 ISO-8859-1
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
-# There's a bug with the fix i added to the double multimedia key input bug. It sometimes doesnt work.
+# There's a bug with the fix I added to the double multimedia key input bug. It sometimes doesnt work.
 #
 # More Options:
 #   Being able to change output device
