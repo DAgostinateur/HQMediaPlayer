@@ -30,10 +30,14 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
 #
 # There's a bug with the fix I added to the double multimedia key input bug. It sometimes doesnt work.
+#   The alt key would randomly be pressed, even though it's not, and that would mess up the multimedia key.
+#   Now it doesnt, but pressing multiple multimedia key at the same time causes them to not work afterwards, until
+#   a non multimedia key gets pressed.
 #
 # More Options:
 #   Being able to change output device
 #
+# Add the ability to right click the volume slider to set the volume with a precise input.
 # QtxGlobalShortcuts, look into that
 # About Section
 # Add info on README.md
@@ -166,6 +170,11 @@ class HQMediaPlayer(QMainWindow):
         self.options_dialog.update_info_choices()
         self.options_dialog.show()
 
+    def rm_all_multimedia_keys(self):
+        for key in self.key_list:
+            if util.is_multimedia_key(key):
+                self.key_list.remove(key)
+
     def keyPressEvent(self, event: QKeyEvent):
         # https://stackoverflow.com/questions/7176951/how-to-get-multiple-key-presses-in-single-event/10568233#10568233
         self.first_release = True
@@ -184,9 +193,11 @@ class HQMediaPlayer(QMainWindow):
                     self.debug_console.write(
                         "Process Multimedia Key {} -- {}:".format(str(self.key_list), str(self.multimedia_key)))
 
+                    # self.rm_all_multimedia_keys()
                     self.multimedia_key = None
                     self.multimedia_key_pressed = not self.multimedia_key_pressed
                 else:
+                    self.rm_all_multimedia_keys()
                     self.process_multi_keys(self.key_list)
                     self.debug_console.write("Process Any Keys: {}".format(str(self.key_list)))
 

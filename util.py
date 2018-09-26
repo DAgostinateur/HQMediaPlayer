@@ -10,6 +10,16 @@ def is_multimedia_key(key):
             key == Qt.Key_MediaTogglePlayPause)
 
 
+def has_multiple_multimedia_key(key_list):
+    multimedia_key_count = 0
+
+    for key in key_list:
+        if is_multimedia_key(key):
+            multimedia_key_count += 1
+
+    return multimedia_key_count > 1
+
+
 def get_upper_parentwidget(widget, parent_position: int):
     """This function replaces this:
           self.parentWidget().parentWidget().parentWidget()
