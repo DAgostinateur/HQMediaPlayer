@@ -36,8 +36,7 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #
 # More Options:
 #   Being able to change output device
-#
-# Add the ability to right click the volume slider to set the volume with a precise input.
+
 # QtxGlobalShortcuts, look into that
 # About Section
 # Add info on README.md
