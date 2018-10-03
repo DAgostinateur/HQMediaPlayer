@@ -1,4 +1,5 @@
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QComboBox
 
 
 def is_multimedia_key(key):
@@ -18,6 +19,10 @@ def has_multiple_multimedia_key(key_list):
             multimedia_key_count += 1
 
     return multimedia_key_count > 1
+
+
+def get_all_combo_box_items(combo_box: QComboBox):
+    return [[combo_box.itemText(index), index] for index in range(combo_box.count())]
 
 
 def get_upper_parentwidget(widget, parent_position: int):

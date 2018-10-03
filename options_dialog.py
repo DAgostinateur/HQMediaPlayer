@@ -1,16 +1,19 @@
 from PyQt5.QtWidgets import (QWidget, QDialogButtonBox, QDialog,
                              QTabWidget, QGroupBox, QRadioButton,
-                             QLabel, QSpinBox)
+                             QLabel, QSpinBox, QComboBox)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtMultimedia import QAudio, QAudioDeviceInfo
 
 import files
 import hqmediaplayer
+import util
 
 import os
 import json
 
 
+# noinspection PyArgumentList
 class Options(object):
     default_app_options_file = "./options.json"
     default_app_volume = 25
@@ -18,6 +21,7 @@ class Options(object):
     default_app_play_button_behaviour = 1
     default_app_last_folder_opened = "/"
     default_app_playlist_autoplay = 1
+    default_app_output_device = QAudioDeviceInfo.defaultOutputDevice().deviceName()
 
     json_volume_name = "default_volume"
     json_timer_name = "default_timer_interval"
@@ -25,6 +29,7 @@ class Options(object):
     json_music_folders_name = "music_folders"
     json_last_folder_opened_name = "default_last_folder_opened"
     json_playlist_autoplay = "default_playlist_autoplay"
+    json_output_device = "default_output_device"
 
     def __init__(self):
         self.default_user_volume = None
@@ -33,6 +38,7 @@ class Options(object):
         self.user_music_folders = None
         self.default_user_last_folder_opened = None
         self.default_user_playlist_autoplay = None
+        self.default_user_output_device = None
 
         self.json_user_defaults = None
 
@@ -60,6 +66,9 @@ class Options(object):
     def get_default_playlist_autoplay(self):
         return self.get_default_option(self.default_user_playlist_autoplay, self.default_app_playlist_autoplay)
 
+    def get_default_output_device(self):
+        return self.get_default_option(self.default_user_output_device, self.default_app_output_device)
+
     def get_user_defaults(self):
         if not os.path.exists(self.default_app_options_file):
             return
@@ -76,9 +85,10 @@ class Options(object):
             self.user_music_folders = self.set_user_default(self.json_music_folders_name)
             self.default_user_last_folder_opened = self.set_user_default(self.json_last_folder_opened_name)
             self.default_user_playlist_autoplay = self.set_user_default(self.json_playlist_autoplay)
+            self.default_user_output_device = self.set_user_default(self.json_output_device)
 
     def save_user_defaults(self, volume=None, timer_interval=None, play_button_behaviour=None, music_folder=None,
-                           last_folder_opened=None, playlist_autoplay=None):
+                           last_folder_opened=None, playlist_autoplay=None, output_device=None):
         if volume is None:
             volume = self.get_default_volume()
         else:
@@ -111,12 +121,18 @@ class Options(object):
         else:
             self.default_user_playlist_autoplay = playlist_autoplay
 
+        if output_device is None:
+            output_device = self.get_default_output_device()
+        else:
+            self.default_user_output_device = output_device
+
         info_dicts = {'{}'.format(self.json_volume_name): volume,
                       '{}'.format(self.json_timer_name): timer_interval,
                       '{}'.format(self.json_play_button_name): play_button_behaviour,
                       self.json_music_folders_name: self.user_music_folders,
                       '{}'.format(self.json_last_folder_opened_name): last_folder_opened,
-                      '{}'.format(self.json_playlist_autoplay): playlist_autoplay}
+                      '{}'.format(self.json_playlist_autoplay): playlist_autoplay,
+                      '{}'.format(self.json_output_device): output_device}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -132,7 +148,8 @@ class Options(object):
                       '{}'.format(self.json_play_button_name): self.default_user_play_button_behaviour,
                       self.json_music_folders_name: self.user_music_folders,
                       '{}'.format(self.json_last_folder_opened_name): self.default_user_last_folder_opened,
-                      '{}'.format(self.json_playlist_autoplay): self.default_user_playlist_autoplay}
+                      '{}'.format(self.json_playlist_autoplay): self.default_user_playlist_autoplay,
+                      '{}'.format(self.json_output_device): self.default_user_output_device}
         json_string = json.dumps(info_dicts, indent=4, separators=(',', ' : '))
 
         with open(self.default_app_options_file, 'w') as file:
@@ -167,6 +184,7 @@ class OptionsDialog(QDialog):
         self.behaviour_play_button = self.mainwindow.options.get_default_play_button()
         self.behaviour_playlist_autoplay = self.mainwindow.options.get_default_playlist_autoplay()
         self.behaviour_scrolling_text_speed = self.mainwindow.options.get_default_timer_interval()
+        self.audio_output_device = self.mainwindow.options.get_default_output_device()
 
         self.behaviour_tab = QWidget()
         self.option_play_button = QGroupBox(self.behaviour_tab)
@@ -178,6 +196,12 @@ class OptionsDialog(QDialog):
         self.option_playlist_autoplay = QGroupBox(self.behaviour_tab)
         self.radio_autoplay = QRadioButton(self.option_playlist_autoplay)
         self.radio_no_autoplay = QRadioButton(self.option_playlist_autoplay)
+
+        self.audio_tab = QWidget()
+        self.option_output_device = QGroupBox(self.audio_tab)
+        self.label_selected_device = QLabel(self.option_output_device)
+        self.combo_box_selected_device = QComboBox(self.option_output_device)
+
         self.create_tabs()
 
         self.button_box = QDialogButtonBox(self)
@@ -191,6 +215,7 @@ class OptionsDialog(QDialog):
         self.spin_millisecond.valueChanged.connect(self.sm_value_change)
         self.radio_autoplay.clicked.connect(self.ra_clicked)
         self.radio_no_autoplay.clicked.connect(self.rna_clicked)
+        self.combo_box_selected_device.currentIndexChanged.connect(self.cbsd_current_index_changed)
 
     def rn_clicked(self):
         """Radio Nothing clicked"""
@@ -212,6 +237,9 @@ class OptionsDialog(QDialog):
         """Radio No Autoplay clicked"""
         self.behaviour_playlist_autoplay = self.behaviour_playlist_autoplay_nothing
 
+    def cbsd_current_index_changed(self, index):
+        self.audio_output_device = self.combo_box_selected_device.itemText(index)
+
     def update_info_choices(self):
         if self.behaviour_play_button == self.behaviour_play_button_restart:
             self.radio_restart.setChecked(True)
@@ -226,6 +254,19 @@ class OptionsDialog(QDialog):
         self.spin_millisecond.setValue(self.mainwindow.options.get_default_option(
             self.mainwindow.options.default_user_timer_interval,
             self.mainwindow.options.default_app_timer_interval))
+
+        self.label_selected_device.setText("Current: {}".format(self.mainwindow.options.get_default_output_device()))
+
+        self.combo_box_selected_device.clear()
+        for device in QAudioDeviceInfo.availableDevices(QAudio.AudioOutput):
+            self.combo_box_selected_device.addItem(device.deviceName())
+            if self.combo_box_selected_device.count() == len(QAudioDeviceInfo.availableDevices(QAudio.AudioOutput)) / 2:
+                self.combo_box_selected_device.addItem(self.mainwindow.options.default_app_output_device)
+                break
+        for text, index in util.get_all_combo_box_items(self.combo_box_selected_device):
+            if text == self.mainwindow.options.get_default_output_device():
+                self.combo_box_selected_device.setCurrentIndex(index)
+        self.label_selected_device.setToolTip(self.mainwindow.options.get_default_output_device())
 
     def create_tabs(self):
         self.tab_widget = QTabWidget(self)
@@ -273,12 +314,26 @@ class OptionsDialog(QDialog):
         self.radio_no_autoplay.setToolTip("It will NOT automatically start the player.")
         self.radio_no_autoplay.setText("No Autoplay")
 
+        self.option_output_device.setGeometry(10, 10, 331, 71)
+        self.option_output_device.setToolTip("")
+        self.option_output_device.setTitle("Audio Output Device (Doesn't work)")
+        self.option_output_device.setAlignment(Qt.AlignCenter)
+
+        self.label_selected_device.setGeometry(10, 17, 311, 16)
+        self.label_selected_device.setToolTip("N/A")
+        self.label_selected_device.setText("Current: N/A")
+
+        self.combo_box_selected_device.setGeometry(10, 40, 311, 21)
+
         self.tab_widget.addTab(self.behaviour_tab, "Behaviour")
+        self.tab_widget.addTab(self.audio_tab, "Audio")
 
     def button_box_accepted(self):
         self.mainwindow.options.save_user_defaults(timer_interval=self.behaviour_scrolling_text_speed,
                                                    play_button_behaviour=self.behaviour_play_button,
-                                                   playlist_autoplay=self.behaviour_playlist_autoplay)
+                                                   playlist_autoplay=self.behaviour_playlist_autoplay,
+                                                   output_device=self.audio_output_device)
+
         self.mainwindow.music_info_box.set_timers_interval()
         self.close()
 

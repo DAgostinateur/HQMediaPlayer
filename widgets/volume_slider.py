@@ -11,6 +11,8 @@ class VolumeSlider(QSlider):
     volume_at_start = None
     volume_when_muted = volume_at_start
 
+    pixel_range = 9
+
     def __init__(self, parent=None):
         super(VolumeSlider, self).__init__(parent)
 
@@ -47,10 +49,12 @@ class VolumeSlider(QSlider):
         return self.parentWidget()
 
     def vle_editing_finished(self):
-        # print(self.volume_line_edit.text())
-        if 0 <= int(self.volume_line_edit.text()) <= 100:
-            self.setValue(int(self.volume_line_edit.text()))
-        else:
+        try:
+            if 0 <= int(self.volume_line_edit.text()) <= 100:
+                self.setValue(int(self.volume_line_edit.text()))
+            else:
+                self.volume_line_edit.setText(str(self.value()))
+        except ValueError:
             self.volume_line_edit.setText(str(self.value()))
 
         self.volume_line_edit.clearFocus()
@@ -67,7 +71,7 @@ class VolumeSlider(QSlider):
     def get_offset_correction(self):
         # pixels       - volume
         # left : right
-        # 11   : 11    - 0-4
+        # 11   : 11    - (-4)0-4
         # 10   : 12    - 5-13
         # 9    : 13    - 14-22
         # 8    : 14    - 23-31
@@ -79,30 +83,11 @@ class VolumeSlider(QSlider):
         # 2    : 20    - 77-85
         # 1    : 21    - 86-94
         # 0    : 22    - 95-100
-        if 0 <= self.value() <= 4:
-            return 0
-        elif 5 <= self.value() <= 13:
-            return 1
-        elif 14 <= self.value() <= 22:
-            return 2
-        elif 23 <= self.value() <= 31:
-            return 3
-        elif 32 <= self.value() <= 40:
-            return 4
-        elif 41 <= self.value() <= 49:
-            return 5
-        elif 50 <= self.value() <= 58:
-            return 6
-        elif 59 <= self.value() <= 67:
-            return 7
-        elif 68 <= self.value() <= 76:
-            return 8
-        elif 77 <= self.value() <= 85:
-            return 9
-        elif 86 <= self.value() <= 94:
-            return 10
-        elif 95 <= self.value() <= 100:
-            return 11
+
+        for x in range(12):
+            big_number = x * self.pixel_range + 4
+            if big_number - self.pixel_range + 1 <= self.value() <= big_number:
+                return x
 
     def vs_slider_released(self):
         self.clearFocus()

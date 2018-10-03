@@ -5,7 +5,7 @@ import pypresence.client
 import pypresence.exceptions
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
-from PyQt5.QtMultimedia import QMediaPlayer, QAudioDeviceInfo, QAudio
+from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 
 import audio
@@ -17,6 +17,13 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 
 
 # TODO:
+# A way to see all the songs in the playlist
+# QtxGlobalShortcuts, look into that
+# About Section
+# More Options
+# Add info on README.md
+#
+#
 # Songs playing longer than they should? Or is the duration slider wrong?
 #   When moving the duration slider, when the mp3 file's length has been modified, it will
 #   not change value correctly.
@@ -34,12 +41,9 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 #   Now it doesnt, but pressing multiple multimedia key at the same time causes them to not work afterwards, until
 #   a non multimedia key gets pressed.
 #
-# More Options:
-#   Being able to change output device
-
-# QtxGlobalShortcuts, look into that
-# About Section
-# Add info on README.md
+# Being able to change output device
+#   PyQt5 doesnt have the code required to change audio device output, it's in Qt5 though.
+#   Maybe using other packages would make this possible, but WMediaPlayer and WPlaylist would have to be rewritten.
 
 
 # Fixes the TaskBar Icon bug
@@ -87,16 +91,6 @@ class HQMediaPlayer(QMainWindow):
 
         full_menubar.create_full_menubar(self)
         self.restart_drpc()
-
-        # all_devices = ""
-        # test = QAudioDeviceInfo.availableDevices(QAudio.AudioOutput)[0]
-        #
-        # for d in QAudioDeviceInfo.availableDevices(QAudio.AudioOutput):
-        #
-        #     all_devices += "{}\n".format(d.deviceName())
-        #     print(d.supportedCodecs())
-        # else:
-        #     print(all_devices)
 
     def debug_console_action_triggered(self):
         self.debug_console.show()
@@ -238,6 +232,14 @@ class HQMediaPlayer(QMainWindow):
 
         if any(key_list.count(x) > 1 for x in key_list):
             del key_list[:]
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.RightButton or event.button() == Qt.LeftButton:
+            if self.music_control_box.volume_slider.volume_line_edit.isVisible():
+                self.music_control_box.volume_slider.volume_line_edit.clearFocus()
+                self.music_control_box.volume_slider.volume_line_edit.close()
+        else:
+            QMainWindow.mouseReleaseEvent(self, event)
 
     def closeEvent(self, event: QCloseEvent):
         if self.drpc_enabled:

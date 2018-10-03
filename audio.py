@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QUrl
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlaylist, QMediaPlayer
+from PyQt5.QtMultimedia import (QMediaContent, QMediaPlaylist, QMediaPlayer, QAudio)
 
 import mutagen.mp3
 import os
@@ -23,6 +23,8 @@ class WMediaPlayer(QMediaPlayer):
         self.mainwindow = parent.mainwindow
 
         self.has_playlist = False
+
+        self.setAudioRole(QAudio.MusicRole)
 
         self.stateChanged.connect(self.state_changed)
         self.positionChanged.connect(self.position_changed)
