@@ -45,6 +45,13 @@ class MusicControlBox(QGroupBox):
         self.music_position_label.reset_time()
         self.duration_slider.reset_slider()
 
+    def toggle_play_pause(self):
+        if self.player.state() == self.player.PlayingState:
+            self.pause_button.pb_clicked()
+        elif (self.player.state() == self.player.PausedState or
+              self.player.state() == self.player.StoppedState):
+            self.play_button.plb_clicked()
+
     def set_playing_state_buttons(self):
         self.stop_button.setToolTip("Stop")
         self.stop_button.setIcon(QIcon(files.Images.STOP))

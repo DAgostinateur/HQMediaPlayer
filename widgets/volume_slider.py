@@ -110,10 +110,10 @@ class VolumeSlider(QSlider):
     def mute_volume(self):
         self.setValue(0)
 
-    def increase_volume(self, nb: int):
+    def increase_volume(self, nb: int = 5):
         self.setValue(self.value() + nb)
 
-    def decrease_volume(self, nb: int):
+    def decrease_volume(self, nb: int = 5):
         self.setValue(self.value() - nb)
 
     def get_volume_icon(self):

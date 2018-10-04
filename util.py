@@ -1,5 +1,15 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QAbstractNativeEventFilter
 from PyQt5.QtWidgets import QComboBox
+
+
+class WinEventFilter(QAbstractNativeEventFilter):
+    def __init__(self, p_keybinder):
+        self.keybinder = p_keybinder
+        super().__init__()
+
+    def nativeEventFilter(self, eventType, message):
+        ret = self.keybinder.handler(eventType, message)
+        return ret, 0
 
 
 def is_multimedia_key(key):

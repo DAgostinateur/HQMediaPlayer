@@ -4,14 +4,17 @@ Pyqt5 Media Player
 [![pypresence](https://img.shields.io/badge/using-pypresence-00bb88.svg?style=for-the-badge&logo=discord&logoWidth=20)](https://github.com/qwertyquerty/pypresence)
 
 ### Requirements:
-- Python 3.5.3 (Only used on this version for now)
+- Python 3.5.3 (Only tested version)
 - PyQt5 5.10.1
 - PyQt5-sip 4.19.11
-- mutagen 1.41.1+
-- pypresence 2.0.2+
+- [mutagen](https://github.com/quodlibet/mutagen) 1.41.1+
+- [pypresence](https://github.com/qwertyquerty/pypresence) 2.0.2+
+- [pyqtkeybind](https://github.com/codito/pyqtkeybind) 0.0.3+
 
 ### Shortcuts:
-- Play or Pause: Ctrl + Alt + Home OR Play/Pause Multimedia Key
+- Toggle Play/Pause: Ctrl + Alt + Home OR Toggle Play/Pause Multimedia Key
+- Play: Play Multimedia Key
+- Pause: Pause Multimedia Key
 - Stop: Stop Multimedia Key
 - Increase Volume: Ctrl + Alt + Up Arrow
 - Decrease Volume: Ctrl + Alt + Down Arrow

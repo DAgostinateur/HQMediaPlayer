@@ -1,11 +1,11 @@
 import ctypes
 import sys
 
+from pyqtkeybind import keybinder
 import pypresence.client
 import pypresence.exceptions
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QAbstractEventDispatcher
 from PyQt5.QtGui import QKeyEvent, QCloseEvent, QIcon, QFont
-from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 
 import audio
@@ -18,11 +18,18 @@ from widgets import (music_control_box, music_info_box, full_menubar,
 
 # TODO:
 # A way to see all the songs in the playlist
-# QtxGlobalShortcuts, look into that
+# Ability to choose a specific song in the playlist to play
+# Search Section
+# Custom tags saved separately from audio file
+# Accept other audio files format
 # About Section
 # More Options
 # Add info on README.md
 #
+#
+# Global Shortcuts
+#   I went with pyqtkeybind for global shortcuts, but I don't know if multimedia keys are possible with it.
+#   I can't figure out the string for them.
 #
 # Songs playing longer than they should? Or is the duration slider wrong?
 #   When moving the duration slider, when the mp3 file's length has been modified, it will
@@ -77,6 +84,10 @@ class HQMediaPlayer(QMainWindow):
 
         # drpc = Discord Rich Presence
         # The id that goes with it is the discord client id of the application
+
+        self.win_event_filter = None
+        self.event_dispatcher = None
+
         self.drpc = None
         self.drpc_enabled = False
 
@@ -91,6 +102,8 @@ class HQMediaPlayer(QMainWindow):
 
         full_menubar.create_full_menubar(self)
         self.restart_drpc()
+
+        self.create_shortcut_connections()
 
     def debug_console_action_triggered(self):
         self.debug_console.show()
@@ -201,18 +214,8 @@ class HQMediaPlayer(QMainWindow):
             pass
 
     def process_multi_keys(self, key_list):
-        if (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Home]) or
-                util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause])):
-            if self.music_control_box.player.state() == QMediaPlayer.PlayingState:
-                self.music_control_box.pause_button.pb_clicked()
-            elif (self.music_control_box.player.state() == QMediaPlayer.PausedState or
-                  self.music_control_box.player.state() == QMediaPlayer.StoppedState):
-                self.music_control_box.play_button.plb_clicked()
-
-        elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Up]):
-            self.music_control_box.volume_slider.increase_volume(5)
-        elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_Down]):
-            self.music_control_box.volume_slider.decrease_volume(5)
+        if util.check_keys(key_list, [Qt.Key_MediaTogglePlayPause]):
+            self.music_control_box.toggle_play_pause()
         elif util.check_keys(key_list, [Qt.Key_MediaStop]):
             self.music_control_box.stop_button.sb_clicked()
         elif util.check_keys(key_list, [Qt.Key_MediaPlay]):
@@ -221,11 +224,9 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.pause_button.pb_clicked()
         elif util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.Key_H, Qt.Key_Q]):
             self.music_control_box.play_button.toggle_icon_status()
-        elif (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.RightArrow]) or
-              util.check_keys(key_list, [Qt.Key_MediaNext])):
+        elif util.check_keys(key_list, [Qt.Key_MediaNext]):
             self.music_control_box.next_button.nb_clicked()
-        elif (util.check_keys(key_list, [Qt.Key_Control, Qt.Key_Alt, Qt.LeftArrow]) or
-              util.check_keys(key_list, [Qt.Key_MediaPrevious])):
+        elif util.check_keys(key_list, [Qt.Key_MediaPrevious]):
             self.music_control_box.previous_button.prb_clicked()
 
         # self.dbg_console.write(key_list)
@@ -249,6 +250,26 @@ class HQMediaPlayer(QMainWindow):
         self.debug_console.close()
         self.options_dialog.close()
         self.fol_man.close()
+
+    def create_shortcut_connections(self):
+        keybinder.init()
+        # Are certain keys impossible to shortcut with pyqtkeybind
+        # keybinder.register_hotkey(self.winId(), "MediaTogglePlayPause", self.music_control_box.toggle_play_pause)
+        # keybinder.register_hotkey(self.winId(), "MediaPlay", self.music_control_box.play_button.plb_clicked)
+        # keybinder.register_hotkey(self.winId(), "MediaPause", self.music_control_box.pause_button.pb_clicked)
+        # keybinder.register_hotkey(self.winId(), "MediaNext", self.music_control_box.next_button.nb_clicked)
+        # keybinder.register_hotkey(self.winId(), "MediaPrevious", self.music_control_box.previous_button.prb_clicked)
+        # keybinder.register_hotkey(self.winId(), "MediaStop", self.music_control_box.stop_button.sb_clicked)
+
+        keybinder.register_hotkey(self.winId(), "Ctrl+Alt+Home", self.music_control_box.toggle_play_pause)
+        keybinder.register_hotkey(self.winId(), "Ctrl+Alt+Up", self.music_control_box.volume_slider.increase_volume)
+        keybinder.register_hotkey(self.winId(), "Ctrl+Alt+Down", self.music_control_box.volume_slider.decrease_volume)
+        keybinder.register_hotkey(self.winId(), "Ctrl+Alt+Right", self.music_control_box.next_button.nb_clicked)
+        keybinder.register_hotkey(self.winId(), "Ctrl+Alt+Left", self.music_control_box.previous_button.prb_clicked)
+
+        self.win_event_filter = util.WinEventFilter(keybinder)
+        self.event_dispatcher = QAbstractEventDispatcher.instance()
+        self.event_dispatcher.installNativeEventFilter(self.win_event_filter)
 
 
 if __name__ == '__main__':
