@@ -2,10 +2,9 @@ from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtCore import Qt
 
-from widgets import (volume_slider, mute_button, repeat_button,
-                     stop_button, pause_button, play_button,
-                     next_button, previous_button,
-                     music_position_label, duration_slider)
+from widgets.music_control_widgets import (pause_button, play_button, next_button, stop_button,
+                                           repeat_button, previous_button, mute_button,
+                                           duration_slider, volume_slider, music_position_label)
 
 import util
 import files

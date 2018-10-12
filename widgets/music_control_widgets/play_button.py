@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtMultimedia import QMediaPlayer
 
-import options_dialog
+from widgets import options_dialog
 import files
 import util
 

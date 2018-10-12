@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtGui import QPixmap
 
-from widgets import (animated_label, album_art_label, playlist_total_label)
+from widgets.music_info_widgets import album_art_label, playlist_total_label, animated_label
 
 import audio
 import util

@@ -10,10 +10,10 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 
 import audio
 import files
-import options_dialog
 import util
-from widgets import (music_control_box, music_info_box, full_menubar,
-                     debug_console, folders_manager)
+import options
+from widgets import (full_menubar, debug_console, folders_manager,
+                     music_control_box, music_info_box, options_dialog)
 
 
 # TODO:
@@ -72,8 +72,8 @@ class HQMediaPlayer(QMainWindow):
         self.multimedia_key_pressed = False
         self.multimedia_key = None
 
-        self.setMinimumSize(702, 474)
-        self.setMaximumSize(702, 474)
+        self.setMinimumSize(701, 474)
+        self.setMaximumSize(701, 474)
         self.setFont(QFont("Consolas"))
         self.setWindowTitle("HQMediaPlayer")
         self.setIconSize(QSize(32, 32))
@@ -91,7 +91,7 @@ class HQMediaPlayer(QMainWindow):
         self.drpc = None
         self.drpc_enabled = False
 
-        self.options = options_dialog.Options()
+        self.options = options.Options()
         self.song = audio.WSong()
         self.playlist = audio.WPlaylist(self)
         self.debug_console = debug_console.EmbeddedConsole()
