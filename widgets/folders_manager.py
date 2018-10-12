@@ -13,6 +13,7 @@ class FoldersManager(QWidget):
         super(FoldersManager, self).__init__()
         self.mainwindow = main_parent
 
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setGeometry(50, 50, 350, 250)
         self.setMinimumSize(350, 250)
         self.setFont(QFont("Consolas", 10))

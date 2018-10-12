@@ -97,8 +97,8 @@ class HQMediaPlayer(QMainWindow):
         self.debug_console = debug_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
-        self.options_dialog = options_dialog.OptionsDialog(self)
-        self.fol_man = folders_manager.FoldersManager(self)
+        self.options_dialog = None
+        self.fol_man = None
 
         full_menubar.create_full_menubar(self)
         self.restart_drpc()
@@ -154,7 +154,8 @@ class HQMediaPlayer(QMainWindow):
 
         self.music_control_box.player.has_playlist = True
 
-        if self.options.get_default_playlist_autoplay() == self.options_dialog.behaviour_playlist_autoplay_start:
+        if self.options.get_default_playlist_autoplay() == \
+                options_dialog.OptionsDialog.behaviour_playlist_autoplay_start:
             self.music_control_box.stop_button.sb_clicked()
             self.music_control_box.play_button.plb_clicked()
 
@@ -169,10 +170,12 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.play_button.plb_clicked()
 
     def open_folders_manager(self):
+        self.fol_man = folders_manager.FoldersManager(self)  # Uses 25mb of memory
         self.fol_man.refresh_list()
         self.fol_man.show()
 
     def open_options_menu(self):
+        self.options_dialog = options_dialog.OptionsDialog(self)  # Uses 30mb of memory
         self.options_dialog.update_info_choices()
         self.options_dialog.show()
 
@@ -248,8 +251,8 @@ class HQMediaPlayer(QMainWindow):
 
         self.options.save_user_defaults(volume=self.music_control_box.volume_slider.value())
         self.debug_console.close()
-        self.options_dialog.close()
-        self.fol_man.close()
+        util.try_closing_window(self.options_dialog)
+        util.try_closing_window(self.fol_man)
 
     def create_shortcut_connections(self):
         keybinder.init()

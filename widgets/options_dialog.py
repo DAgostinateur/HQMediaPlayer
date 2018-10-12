@@ -21,6 +21,7 @@ class OptionsDialog(QDialog):
         super(OptionsDialog, self).__init__()
         self.mainwindow = main_parent
 
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.setGeometry(50, 50, 400, 300)
         self.setMinimumSize(400, 300)
         self.setFont(QFont("Consolas", 10))

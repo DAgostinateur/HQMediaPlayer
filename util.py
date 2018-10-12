@@ -35,6 +35,15 @@ def get_all_combo_box_items(combo_box: QComboBox):
     return [[combo_box.itemText(index), index] for index in range(combo_box.count())]
 
 
+def try_closing_window(widget):
+    try:
+        widget.close()
+    except AttributeError:
+        pass
+    except RuntimeError:
+        pass
+
+
 def get_upper_parentwidget(widget, parent_position: int):
     """This function replaces this:
           self.parentWidget().parentWidget().parentWidget()
