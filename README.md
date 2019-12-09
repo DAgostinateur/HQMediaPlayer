@@ -4,7 +4,7 @@ Pyqt5 Media Player
 [![pypresence](https://img.shields.io/badge/using-pypresence-00bb88.svg?style=for-the-badge&logo=discord&logoWidth=20)](https://github.com/qwertyquerty/pypresence)
 
 ### Requirements:
-- Python 3.5.3 (Only tested version)
+- Python 3.5.3+
 - PyQt5 5.10.1
 - PyQt5-sip 4.19.11
 - [mutagen](https://github.com/quodlibet/mutagen) 1.41.1+

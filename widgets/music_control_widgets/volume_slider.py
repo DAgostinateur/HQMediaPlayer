@@ -64,6 +64,7 @@ class VolumeSlider(QSlider):
         if event.button() == Qt.RightButton:
             self.volume_line_edit.move(169 + self.value() - self.get_offset_correction(), 38)
             self.volume_line_edit.show()
+            self.volume_line_edit.selectAll()
             self.volume_line_edit.setFocus()
         else:
             QSlider.mouseReleaseEvent(self, event)

@@ -1,6 +1,18 @@
 from PyQt5.QtCore import Qt, QAbstractNativeEventFilter
 from PyQt5.QtWidgets import QComboBox
 
+import os
+
+
+def sizeof_fmt(file, suffix='B'):
+    # https://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+    num = os.path.getsize(file)
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
 
 class WinEventFilter(QAbstractNativeEventFilter):
     def __init__(self, p_keybinder):

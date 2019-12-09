@@ -12,8 +12,8 @@ import audio
 import files
 import util
 import options
-from widgets import (full_menubar, debug_console, folders_manager,
-                     music_control_box, music_info_box, options_dialog)
+from widgets import (full_menubar, debug_console, folders_manager, music_control_box, music_info_box, options_dialog,
+                     song_list_tree)
 
 
 # TODO:
@@ -36,12 +36,9 @@ from widgets import (full_menubar, debug_console, folders_manager,
 #   not change value correctly.
 #
 # Look into "directshowplayerservice::dorender: unresolved error code 0x80040266"
-#   It's a .mp3 metadata problem. Versions of ID3 cause the issues.
-#   Found the bug:
-#       https://bugreports.qt.io/browse/QTBUG-42286
-#   Fix:
-#       Change ID3 Tags to ID3v2.3 ISO-8859-1
-#       ID#v2.4, ID3v2.3 UTF-16 and UTF-8 were causing problems
+#   Actual Fix:
+#       Can be fixed by installing missing codecs.
+#       https://github.com/Nevcairiel/LAVFilters
 #
 # There's a bug with the fix I added to the double multimedia key input bug. It sometimes doesnt work.
 #   The alt key would randomly be pressed, even though it's not, and that would mess up the multimedia key.
@@ -50,7 +47,7 @@ from widgets import (full_menubar, debug_console, folders_manager,
 #
 # Being able to change output device
 #   PyQt5 doesnt have the code required to change audio device output, it's in Qt5 though.
-#   Maybe using other packages would make this possible, but WMediaPlayer and WPlaylist would have to be rewritten.
+#   Maybe using other libraries would make this possible, but WMediaPlayer and WPlaylist would have to be rewritten.
 
 
 # Fixes the TaskBar Icon bug
@@ -97,6 +94,7 @@ class HQMediaPlayer(QMainWindow):
         self.debug_console = debug_console.EmbeddedConsole()
         self.music_control_box = music_control_box.MusicControlBox(self.centralwidget)
         self.music_info_box = music_info_box.MusicInfoBox(self.centralwidget)
+        self.song_list_tree = song_list_tree.SongListTree(self.centralwidget)
         self.options_dialog = None
         self.fol_man = None
 
@@ -153,6 +151,7 @@ class HQMediaPlayer(QMainWindow):
         self.song.set_song(self.playlist.get_current_song())
 
         self.music_control_box.player.has_playlist = True
+        self.song_list_tree.update_song_list(self.playlist)
 
         if self.options.get_default_playlist_autoplay() == \
                 options_dialog.OptionsDialog.behaviour_playlist_autoplay_start:

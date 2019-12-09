@@ -22,8 +22,8 @@ class OptionsDialog(QDialog):
         self.mainwindow = main_parent
 
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setGeometry(50, 50, 400, 300)
-        self.setMinimumSize(400, 300)
+        self.setGeometry(50, 50, 400, 265)
+        self.setMinimumSize(400, 265)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Options")
         self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
@@ -40,7 +40,7 @@ class OptionsDialog(QDialog):
         self.create_tabs()
 
         self.button_box = QDialogButtonBox(self)
-        self.button_box.setGeometry(20, 250, 360, 32)
+        self.button_box.setGeometry(20, 220, 360, 32)
         self.button_box.setStandardButtons(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
 
         self.button_box.accepted.connect(self.button_box_accepted)

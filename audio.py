@@ -57,6 +57,7 @@ class WMediaPlayer(QMediaPlayer):
             self.mainwindow.music_control_box.set_end_of_media_buttons()
 
     def next_index(self):
+        self.mainwindow.song_list_tree.remove_highlight(self.mainwindow.playlist)
         if self.mainwindow.playlist.currentIndex() >= self.mainwindow.playlist.mediaCount() - 1:
             self.mainwindow.playlist.setCurrentIndex(0)
         else:
@@ -64,6 +65,7 @@ class WMediaPlayer(QMediaPlayer):
         self.set_new_current_song()
 
     def previous_index(self):
+        self.mainwindow.song_list_tree.remove_highlight(self.mainwindow.playlist)
         if self.mainwindow.playlist.currentIndex() <= 0:
             self.mainwindow.playlist.setCurrentIndex(self.mainwindow.playlist.mediaCount() - 1)
         else:
@@ -77,6 +79,7 @@ class WMediaPlayer(QMediaPlayer):
         self.mainwindow.music_control_box.reset_duration()
         self.mainwindow.music_control_box.duration_slider.setMaximum(self.mainwindow.song.get_player_duration())
         self.mainwindow.music_info_box.set_song_info()
+        self.mainwindow.song_list_tree.add_highlight(self.mainwindow.playlist)
 
         self.state_changed(self.state())
 
@@ -90,8 +93,21 @@ class WPlaylist(QMediaPlaylist):
     def get_current_song(self):
         return self.currentMedia().canonicalUrl().path()[1:]
 
+    def get_song(self, index):
+        return self.media(index).canonicalUrl().path()[1:]
+
+    def get_all_song_file_locations(self):
+        songs = []
+        for i in range(0, self.mediaCount()):
+            song = self.media(i)
+            songs.append(song.canonicalUrl().path()[1:])
+        return songs
+
     def set_playlist_files(self):
         for folder in self.mainwindow.options.user_music_folders:
+            if not os.path.isdir(os.path.join(folder)):
+                continue
+
             for file in os.listdir(folder):
                 if is_music_file(os.path.join(folder, file)):
                     self.addMedia(QMediaContent(QUrl.fromLocalFile(os.path.join(folder, file))))
@@ -114,7 +130,7 @@ class WSong:
         self.content = QMediaContent(QUrl.fromLocalFile(file_location))
 
     def has_song(self):
-        return not self.file_location is None
+        return self.file_location is not None
 
     def get_info(self, wanted_info: str = TITLE):
         """Gets the desired metadata from the mp3 file.
@@ -126,6 +142,9 @@ class WSong:
             return info[2:len(info) - 2]  # Removes the ['']
         except KeyError:
             return "N/A"
+
+    def get_file_size(self):
+        return util.sizeof_fmt(self.file_location)
 
     def get_apic(self, file_output=False):
         """Extracts album art from a given MP3 file.  Output is raw JPEG data.
