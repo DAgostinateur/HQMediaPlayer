@@ -72,6 +72,11 @@ class WMediaPlayer(QMediaPlayer):
             self.mainwindow.playlist.previous()
         self.set_new_current_song()
 
+    def goto_index(self, index):
+        self.mainwindow.song_list_tree.remove_highlight(self.mainwindow.playlist)
+        self.mainwindow.playlist.setCurrentIndex(index)
+        self.set_new_current_song()
+
     def set_new_current_song(self):
         # This method needs a better name.
         self.mainwindow.song.set_song(self.mainwindow.playlist.get_current_song())

@@ -60,7 +60,6 @@ class PlayButton(QPushButton):
         self.music_control_box.duration_slider.setMaximum(self.mainwindow.song.get_player_duration())
 
         self.mainwindow.music_info_box.set_song_info()
-        self.mainwindow.song_list_tree.add_highlight(self.mainwindow.playlist)
         self.music_control_box.player.play()
 
     def plb_clicked(self):

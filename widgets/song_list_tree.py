@@ -20,13 +20,15 @@ class SongListTree(QTreeWidget):
 
         self.set_song_list_header()
 
-    @property
-    def mainwindow(self):
-        return util.get_upper_parentwidget(self, 3)
+        self.itemDoubleClicked.connect(self.slt_item_double_clicked)
 
     @property
-    def music_control_box(self):
-        return self.parentWidget()
+    def mainwindow(self):
+        return util.get_upper_parentwidget(self, 2)
+
+    def slt_item_double_clicked(self, item, column):
+        if item is not None:
+            self.mainwindow.music_control_box.player.goto_index(self.indexOfTopLevelItem(item))
 
     def set_song_list_header(self):
         self.setHeaderLabels(["Title", "Artist", "Length", "Size"])
@@ -36,6 +38,7 @@ class SongListTree(QTreeWidget):
 
     def add_highlight(self, playlist):
         self.set_background_colour(playlist, self.GREEN_QBRUSH)
+        self.scrollToItem(self.topLevelItem(playlist.currentIndex()))
 
     def remove_highlight(self, playlist):
         self.set_background_colour(playlist, self.WHITE_QBRUSH)

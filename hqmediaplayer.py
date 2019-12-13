@@ -17,8 +17,6 @@ from widgets import (full_menubar, debug_console, folders_manager, music_control
 
 
 # TODO:
-# A way to see all the songs in the playlist
-# Ability to choose a specific song in the playlist to play
 # Search Section
 # Custom tags saved separately from audio file
 # Accept other audio files format
@@ -151,12 +149,14 @@ class HQMediaPlayer(QMainWindow):
         self.song.set_song(self.playlist.get_current_song())
 
         self.music_control_box.player.has_playlist = True
-        self.song_list_tree.update_song_list(self.playlist)
 
         if self.options.get_default_playlist_autoplay() == \
                 options_dialog.OptionsDialog.behaviour_playlist_autoplay_start:
             self.music_control_box.stop_button.sb_clicked()
             self.music_control_box.play_button.plb_clicked()
+
+        self.song_list_tree.update_song_list(self.playlist)
+        self.song_list_tree.add_highlight(self.playlist)
 
     def open_file(self):
         file_name, file_type = QFileDialog.getOpenFileName(self, "Open File", "/", "MP3 (*.mp3)")
