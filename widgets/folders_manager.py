@@ -1,5 +1,6 @@
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QWidget, QPushButton, QFileDialog, QLabel, QListWidget
+from PyQt5.QtWidgets import QWidget, QPushButton, QFileDialog, QLabel, QListWidget,\
+    QListView, QAbstractItemView, QTreeView
 from PyQt5.QtCore import Qt, QSize
 
 import os.path
@@ -15,32 +16,33 @@ class FoldersManager(QWidget):
 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setGeometry(50, 50, 350, 250)
-        self.setMinimumSize(350, 250)
+        self.setMinimumSize(450, 350)
+        self.setMaximumSize(450, 350)
         self.setFont(QFont("Consolas", 10))
         self.setWindowTitle("Folders Manager")
         self.setWindowIcon(QIcon(files.Images.HQPLAYER_LOGO))
 
         self.explanation_label = QLabel(self)
-        self.explanation_label.setGeometry(14, 20, 240, 16)
-        self.explanation_label.setToolTip("Music folders used for easy access.")
-        self.explanation_label.setText("Music folders used for easy access.")
+        self.explanation_label.setGeometry(14, 20, 250, 16)
+        self.explanation_label.setToolTip("Music folders used for the playlist.")
+        self.explanation_label.setText("Music folders used for the playlist.")
 
         self.add_button = QPushButton(self)
-        self.add_button.setGeometry(270, 60, 25, 25)
+        self.add_button.setGeometry(405, 60, 25, 25)
         self.add_button.setToolTip("Add folder")
         self.add_button.setIcon(QIcon(files.Images.ADD))
         self.add_button.setIconSize(QSize(25, 25))
         self.add_button.setFocusPolicy(Qt.ClickFocus)
 
         self.remove_button = QPushButton(self)
-        self.remove_button.setGeometry(270, 90, 25, 25)
+        self.remove_button.setGeometry(405, 90, 25, 25)
         self.remove_button.setToolTip("Remove folder")
         self.remove_button.setIcon(QIcon(files.Images.REMOVE))
         self.remove_button.setIconSize(QSize(25, 25))
         self.remove_button.setFocusPolicy(Qt.ClickFocus)
 
         self.folder_list = QListWidget(self)
-        self.folder_list.setGeometry(10, 40, 250, 200)
+        self.folder_list.setGeometry(10, 40, 373, 300)
         self.folder_list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.folder_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.folder_list.setEditTriggers(QListWidget.SelectedClicked)
@@ -75,14 +77,32 @@ class FoldersManager(QWidget):
         self.remove_button.clearFocus()
 
     def ab_clicked(self):
-        folder = QFileDialog.getExistingDirectory(self, "Open Folder",
-                                                  self.mainwindow.options.get_default_last_folder_opened(),
-                                                  QFileDialog.ShowDirsOnly)
-        if len(folder) != 0:
-            parent_folder = os.path.dirname(r"{}".format(folder))
-            self.mainwindow.options.save_user_defaults(music_folder=folder, last_folder_opened=parent_folder)
-            self.folder_list.addItem(folder)
-            self.folder_list.sortItems()
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.DirectoryOnly)
+        file_dialog.setDirectory(self.mainwindow.options.get_default_last_folder_opened())
+        file_dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+        file_view = file_dialog.findChild(QListView, 'listView')
+
+        # to make it possible to select multiple directories:
+        if file_view:
+            file_view.setSelectionMode(QAbstractItemView.MultiSelection)
+        f_tree_view = file_dialog.findChild(QTreeView)
+        if f_tree_view:
+            f_tree_view.setSelectionMode(QAbstractItemView.MultiSelection)
+
+        if file_dialog.exec():
+            folders = file_dialog.selectedFiles()
+
+            if len(folders) != 0:
+                for folder in folders:
+                    parent_folder = os.path.dirname(r"{}".format(folder))
+                    self.mainwindow.options.save_user_defaults(music_folder=folder, last_folder_opened=parent_folder)
+                    self.folder_list.addItem(folder)
+                    self.folder_list.sortItems()
+
+        # folder = QFileDialog.getExistingDirectory(self, "Add Folder(s)",
+        #                                           self.mainwindow.options.get_default_last_folder_opened(),
+        #                                           QFileDialog.ShowDirsOnly)
 
     def rm_clicked(self):
         if len(self.folder_list.selectedItems()) != 0:

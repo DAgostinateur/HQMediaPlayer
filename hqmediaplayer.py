@@ -1,5 +1,6 @@
 import ctypes
 import sys
+import os
 
 from pyqtkeybind import keybinder
 import pypresence.client
@@ -18,7 +19,6 @@ from widgets import (full_menubar, debug_console, folders_manager, music_control
 
 # TODO:
 # Search Section
-# Custom tags saved separately from audio file
 # Accept other audio files format
 # About Section
 # More Options
@@ -167,6 +167,34 @@ class HQMediaPlayer(QMainWindow):
             self.music_control_box.player.setMedia(self.song.content)
             self.music_control_box.stop_button.sb_clicked()
             self.music_control_box.play_button.plb_clicked()
+
+            self.song_list_tree.update_song_list(self.playlist)
+
+    def open_folder(self):
+        folder_name = QFileDialog.getExistingDirectory(self, "Open Folder", self.options.get_default_last_folder_opened(),
+                                                  QFileDialog.ShowDirsOnly)
+        if len(folder_name) == 0:
+            return
+        parent_folder = os.path.dirname(r"{}".format(folder_name))
+        self.options.save_user_defaults(last_folder_opened=parent_folder)
+
+        self.playlist.clear()
+        self.music_control_box.player.has_playlist = False
+
+        self.playlist.set_playlist_from_folder(folder_name)
+        self.playlist.shuffle()
+        self.music_control_box.player.setPlaylist(self.playlist)
+        self.song.set_song(self.playlist.get_current_song())
+
+        self.music_control_box.player.has_playlist = True
+
+        if self.options.get_default_playlist_autoplay() == \
+                options_dialog.OptionsDialog.behaviour_playlist_autoplay_start:
+            self.music_control_box.stop_button.sb_clicked()
+            self.music_control_box.play_button.plb_clicked()
+
+        self.song_list_tree.update_song_list(self.playlist)
+        self.song_list_tree.add_highlight(self.playlist)
 
     def open_folders_manager(self):
         self.fol_man = folders_manager.FoldersManager(self)  # Uses 25mb of memory

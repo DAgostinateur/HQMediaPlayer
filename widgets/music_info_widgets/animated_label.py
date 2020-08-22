@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QLabel, QWidget
-from PyQt5.QtCore import QTimer
+import PyQt5.QtGui
+from PyQt5.QtCore import QTimer, Qt
 
 import util
 
@@ -31,6 +32,12 @@ class AnimatedLabel(QWidget):
     @property
     def mainwindow(self):
         return util.get_upper_parentwidget(self, 3)
+
+    def mousePressEvent(self, QMouseEvent):
+        if QMouseEvent.button() == Qt.RightButton and self.original_text != "":
+            clipboard = PyQt5.QtGui.QGuiApplication.clipboard()
+            clipboard.clear()
+            clipboard.setText(self.original_text)
 
     def animate_label_text(self):
         """Animates the text by moving the text to the left once"""

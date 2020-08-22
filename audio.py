@@ -108,6 +108,14 @@ class WPlaylist(QMediaPlaylist):
             songs.append(song.canonicalUrl().path()[1:])
         return songs
 
+    def set_playlist_from_folder(self, folder):
+        if not os.path.isdir(os.path.join(folder)):
+            return
+
+        for file in os.listdir(folder):
+            if is_music_file(os.path.join(folder, file)):
+                self.addMedia(QMediaContent(QUrl.fromLocalFile(os.path.join(folder, file))))
+
     def set_playlist_files(self):
         for folder in self.mainwindow.options.user_music_folders:
             if not os.path.isdir(os.path.join(folder)):

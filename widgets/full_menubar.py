@@ -23,6 +23,12 @@ def create_full_menubar(hqmediaplayer):
     open_file_action.setShortcut("Ctrl+O")
     open_file_action.triggered.connect(hqmediaplayer.open_file)
 
+    open_folder_action = QAction(hqmediaplayer)
+    open_folder_action.setText("Open from Folder")
+    open_folder_action.setIconText("Open from Folder")
+    open_folder_action.setFont(QFont("Consolas", 10))
+    open_folder_action.triggered.connect(hqmediaplayer.open_folder)
+
     folder_manager_action = QAction(hqmediaplayer)
     folder_manager_action.setText("Folders Manager")
     folder_manager_action.setIconText("Folders Manager")
@@ -52,6 +58,7 @@ def create_full_menubar(hqmediaplayer):
     file_menu.setFont(QFont("Consolas", 10))
     file_menu.addAction(start_playlist_action)
     file_menu.addAction(open_file_action)
+    file_menu.addAction(open_folder_action)
     file_menu.addAction(folder_manager_action)
     file_menu.addAction(options_action)
 
